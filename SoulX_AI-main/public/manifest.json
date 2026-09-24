@@ -1,0 +1,13 @@
+{
+  "name": "SOULX",
+  "short_name": "SOULX",
+  "description": "One AI. A Thousand Minds.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020817",
+  "theme_color": "#020817",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/brand/personax-logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

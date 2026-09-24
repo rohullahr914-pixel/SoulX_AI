@@ -1,0 +1,3 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="John D. Rockefeller historical business avatar">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#271b0a"/><stop offset="1" stop-color="#7a4d12"/></linearGradient></defs>
+  <rect width="256" height="256" rx="54" fill="url(#bg)"/><circle cx="128" cy="103" r="48" fill="#f5d6ad"/><path d="M78 104c4-45 96-54 101 2-15-15-28-23-49-19-18-7-33 4-52 17z" fill="#24180c"/><path d="M93 153c22 20 48 20 70 0 24 9 40 27 48 60H45c8-33 24-51 48-60z" fill="#111827"/><path d="M106 107h-13M163 107h-13M114 135c9 6 19 6 28 0" fill="none" stroke="#5b3715" stroke-linecap="round" stroke-width="5"/><path d="M42 202h172" stroke="#f0b429" stroke-width="5"/></svg>

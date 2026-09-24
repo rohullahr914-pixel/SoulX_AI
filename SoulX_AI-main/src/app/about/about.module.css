@@ -1,0 +1,16 @@
+.primaryCta {
+  background-color: #22d3ee;
+  color: #020617;
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.primaryCta:hover {
+  background-color: #67e8f9;
+  color: #020617;
+  box-shadow: 0 0 24px rgb(34 211 238 / 20%);
+}
+
+.primaryCta:focus-visible {
+  outline: 2px solid #67e8f9;
+  outline-offset: 4px;
+}
