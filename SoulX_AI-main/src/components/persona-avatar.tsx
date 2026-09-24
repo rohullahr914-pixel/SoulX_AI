@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 type PersonaAvatarProps = {
   slug: string;
@@ -9,27 +10,27 @@ type PersonaAvatarProps = {
 };
 
 const portraitFiles: Record<string, string[]> = {
-  "albert-einstein": ["/personas/einstein.png", "/personas/albert-einstein.png", "/brand/personax-logo.svg"],
-  "leonardo-da-vinci": ["/personas/leonardo.png", "/brand/personax-logo.svg"],
-  "nikola-tesla": ["/personas/tesla.png", "/brand/personax-logo.svg"],
-  "william-shakespeare": ["/personas/shakespeare.png", "/brand/personax-logo.svg"],
-  "marie-curie": ["/personas/curie.png", "/brand/personax-logo.svg"],
-  "alan-turing": ["/personas/turing.png", "/brand/personax-logo.svg"],
-  socrates: ["/personas/socrates.png", "/brand/personax-logo.svg"],
-  rumi: ["/personas/rumi.png", "/brand/personax-logo.svg"],
-  "steve-jobs": ["/personas/jobs.png", "/brand/personax-logo.svg"],
-  "vincent-van-gogh": ["/personas/gogh.png", "/brand/personax-logo.svg"],
-  "john-d-rockefeller": ["/personas/rockefeller.svg", "/brand/personax-logo.svg"],
-  "alexander-the-great": ["/personas/alexander-the-great.jpg", "/brand/personax-logo.svg"],
-  "fyodor-dostoevsky": ["/personas/fyodor-dostoevsky.jpg", "/brand/personax-logo.svg"],
-  nexus: ["/personas/nexus.svg", "/brand/personax-logo.svg"],
-  "sherlock-holmes": ["/personas/sherlock-holmes.jpg", "/brand/personax-logo.svg"],
-  "michael-jackson": ["/personas/michael-jackson.png", "/personas/michael-jackson.jpg", "/brand/personax-logo.svg"],
-  "isaac-newton": ["/personas/isaac-newton.jpg", "/brand/personax-logo.svg"],
-  "muhammad-ali": ["/personas/muhammad-ali.jpg", "/brand/personax-logo.svg"],
-  "charlie-chaplin": ["/personas/charlie-chaplin.jpg", "/brand/personax-logo.svg"],
-  aristotle: ["/personas/aristotle-portrait.jpg", "/brand/personax-logo.svg"],
-  "abraham-lincoln": ["/personas/historical/abraham-lincoln.jpg", "/personas/abraham-lincoln.jpg", "/brand/personax-logo.svg"],
+  "albert-einstein": ["/personas/einstein.png", "/personas/albert-einstein.png", "/brand/soulx-logo.webp"],
+  "leonardo-da-vinci": ["/personas/leonardo.png", "/brand/soulx-logo.webp"],
+  "nikola-tesla": ["/personas/tesla.png", "/brand/soulx-logo.webp"],
+  "william-shakespeare": ["/personas/shakespeare.png", "/brand/soulx-logo.webp"],
+  "marie-curie": ["/personas/curie.png", "/brand/soulx-logo.webp"],
+  "alan-turing": ["/personas/turing.png", "/brand/soulx-logo.webp"],
+  socrates: ["/personas/socrates.png", "/brand/soulx-logo.webp"],
+  rumi: ["/personas/rumi.png", "/brand/soulx-logo.webp"],
+  "steve-jobs": ["/personas/jobs.png", "/brand/soulx-logo.webp"],
+  "vincent-van-gogh": ["/personas/gogh.png", "/brand/soulx-logo.webp"],
+  "john-d-rockefeller": ["/personas/rockefeller.svg", "/brand/soulx-logo.webp"],
+  "alexander-the-great": ["/personas/alexander-the-great.jpg", "/brand/soulx-logo.webp"],
+  "fyodor-dostoevsky": ["/personas/fyodor-dostoevsky.jpg", "/brand/soulx-logo.webp"],
+  nexus: ["/personas/nexus.svg", "/brand/soulx-logo.webp"],
+  "sherlock-holmes": ["/personas/sherlock-holmes.jpg", "/brand/soulx-logo.webp"],
+  "michael-jackson": ["/personas/michael-jackson.png", "/personas/michael-jackson.jpg", "/brand/soulx-logo.webp"],
+  "isaac-newton": ["/personas/isaac-newton.jpg", "/brand/soulx-logo.webp"],
+  "muhammad-ali": ["/personas/muhammad-ali.jpg", "/brand/soulx-logo.webp"],
+  "charlie-chaplin": ["/personas/charlie-chaplin.jpg", "/brand/soulx-logo.webp"],
+  aristotle: ["/personas/aristotle-portrait.jpg", "/brand/soulx-logo.webp"],
+  "abraham-lincoln": ["/personas/historical/abraham-lincoln.jpg", "/personas/abraham-lincoln.jpg", "/brand/soulx-logo.webp"],
 };
 
 const historicalPortraitSlugs = new Set([
@@ -37,7 +38,7 @@ const historicalPortraitSlugs = new Set([
 ]);
 
 export function PersonaAvatar({ slug, name, className = "" }: PersonaAvatarProps) {
-  const portraitCandidates = portraitFiles[slug] ?? (historicalPortraitSlugs.has(slug) ? [`/personas/historical/${slug}.jpg`, "/brand/personax-logo.svg"] : ["/brand/personax-logo.svg"]);
+  const portraitCandidates = portraitFiles[slug] ?? (historicalPortraitSlugs.has(slug) ? [`/personas/historical/${slug}.jpg`, "/brand/soulx-logo.webp"] : ["/brand/soulx-logo.webp"]);
   const [imageIndex, setImageIndex] = useState(0);
 
   // Reset the fallback when the persona changes.
@@ -55,7 +56,10 @@ export function PersonaAvatar({ slug, name, className = "" }: PersonaAvatarProps
   return (
     <div className={`shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-cyan-500 to-violet-600 ${className}`}>
       {portrait ? (
-        <img
+        <Image
+          width={160}
+          height={160}
+          sizes="64px"
           src={portrait}
           alt={name}
           onError={() => setImageIndex((current) => Math.min(current + 1, portraitCandidates.length - 1))}

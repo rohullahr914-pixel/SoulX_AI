@@ -5,18 +5,10 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/explore", "/persona/", "/about", "/community", "/pricing", "/room"],
-        disallow: [
-          "/admin/",
-          "/api/",
-          "/chat/",
-          "/favorites",
-          "/login",
-          "/profile",
-          "/reset-password",
-          "/settings",
-          "/signup",
-        ],
+        allow: "/",
+        // Private UI routes emit noindex; crawlers must be able to read it.
+        // Authentication, not robots.txt, protects account and admin data.
+        disallow: ["/api/", "/api$"],
       },
     ],
     sitemap: "https://soulxai.tech/sitemap.xml",

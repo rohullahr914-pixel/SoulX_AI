@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { SITE_URL, SITE_DESCRIPTION } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/json-ld";
 import Link from "next/link";
 import Script from "next/script";
 import { Sparkles } from "lucide-react";
@@ -21,43 +23,30 @@ const navItems = [
 ];
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://soulxai.tech"),
-  title: {
-    default: "SOULX — One AI. A Thousand Minds.",
-    template: "%s | SOULX",
-  },
-  description:
-    "Talk to AI personas inspired by history, science, technology, creativity and expertise. Create your own AI personas and explore a new way to interact with AI.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: "SoulX — One AI. A Thousand Minds.", template: "%s | SoulX" },
+  description: SITE_DESCRIPTION,
   manifest: "/manifest.json",
-  openGraph: {
-    title: "SOULX — One AI. A Thousand Minds.",
-    description:
-      "Talk to AI personas inspired by history, science, technology, creativity and expertise. Create your own AI personas and explore a new way to interact with AI.",
-    url: "https://soulxai.tech",
-    siteName: "SOULX",
-    type: "website",
-    images: [{ url: "/brand/personax-hero.png", width: 1200, height: 630, alt: "SoulX — One AI. A Thousand Minds." }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "SOULX — One AI. A Thousand Minds.",
-    description:
-      "Talk to AI personas inspired by history, science, technology, creativity and expertise. Create your own AI personas and explore a new way to interact with AI.",
-    images: ["/brand/personax-hero.png"],
-  },
+  openGraph: { type: "website", siteName: "SoulX", title: "SoulX — One AI. A Thousand Minds.", description: SITE_DESCRIPTION, images: [{ url: "/social-preview", width: 1200, height: 630, alt: "SoulX — One AI. A Thousand Minds." }] },
+  twitter: { card: "summary_large_image", title: "SoulX — One AI. A Thousand Minds.", description: SITE_DESCRIPTION, images: ["/social-preview"] },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={cn("font-sans", geist.variable)}>
       <body>
+        <a href="#page-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-slate-950 focus:p-4 focus:text-white">Skip to content</a>
+        <JsonLd data={{ "@context": "https://schema.org", "@graph": [
+          { "@type": "Organization", "@id": `${SITE_URL}/#organization`, name: "SoulX", url: SITE_URL, logo: `${SITE_URL}/brand/soulx-logo.webp` },
+          { "@type": "WebSite", "@id": `${SITE_URL}/#website`, name: "SoulX", url: SITE_URL, description: SITE_DESCRIPTION, publisher: { "@id": `${SITE_URL}/#organization` } },
+        ] }} />
         <AppShell>
           <div className="min-h-screen bg-[#020817] text-white">
           <div className="mx-auto max-w-375 px-3 pb-8 pt-3 sm:px-6 sm:pt-5 lg:px-8">
             <header className="sticky top-3 z-50 mb-6 rounded-3xl border border-cyan-300/20 bg-slate-950/88 px-3 py-3 shadow-[0_12px_45px_rgba(2,8,23,0.48)] backdrop-blur-2xl sm:top-5 sm:mb-8 sm:rounded-[28px] sm:px-5 lg:px-7">
               <div className="flex items-center justify-between gap-3">
                 <Link href="/" className="flex min-w-0 items-center gap-3 rounded-2xl focus-visible:outline-offset-4 sm:gap-4">
-                  <img src="/brand/personax-logo.svg" alt="SOULX" className="h-11 w-11 shrink-0 rounded-2xl shadow-[0_0_24px_rgba(34,211,238,0.22)] sm:h-12 sm:w-12" />
+                  <img src="/brand/soulx-logo.webp" width={48} height={48} decoding="async" alt="SOULX" className="h-11 w-11 shrink-0 rounded-2xl shadow-[0_0_24px_rgba(34,211,238,0.22)] sm:h-12 sm:w-12" />
                   <div>
                     <div className="text-lg font-black tracking-[-0.07em] text-white sm:text-xl">
                       SOULX
@@ -66,7 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   </div>
                 </Link>
 
-                <nav className="hidden items-center gap-1 rounded-full border border-white/8 bg-white/2.5 p-1 text-sm text-slate-300 lg:flex">
+                <nav aria-label="Main navigation" className="hidden items-center gap-1 rounded-full border border-white/8 bg-white/2.5 p-1 text-sm text-slate-300 lg:flex">
                   {navItems.map((item) => (
                     <Link key={item.href} href={item.href} className="rounded-full px-4 py-2.5 transition hover:bg-white/5 hover:text-white">
                       {item.label}
@@ -81,12 +70,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
             </header>
 
-            {children}
+            <div id="page-content" tabIndex={-1}>{children}</div>
 
             <footer className="mt-10 rounded-[28px] border border-white/10 bg-slate-950/75 px-5 py-6 text-slate-300 shadow-[0_0_20px_rgba(15,23,42,0.8)] sm:px-8">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center gap-3">
-                  <img src="/brand/personax-logo.svg" alt="SOULX" className="h-11 w-11 rounded-xl" />
+                  <img src="/brand/soulx-logo.webp" width={48} height={48} decoding="async" alt="SOULX" className="h-11 w-11 rounded-xl" />
                   <div>
                     <div className="text-lg font-black tracking-[-0.06em] text-white">SOULX</div>
                     <div className="text-[9px] uppercase tracking-[0.28em] text-slate-400">One AI. A thousand minds</div>

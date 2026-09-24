@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Flame, Search } from "lucide-react";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { BackButton } from "@/components/back-button";
@@ -75,7 +76,7 @@ export default function DiscoverPage() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 text-white sm:px-6 lg:px-8">
       <div className="relative mb-8 overflow-hidden rounded-[30px] border border-cyan-400/15 bg-slate-950/75 p-5 shadow-[0_0_35px_rgba(34,211,238,0.08)] backdrop-blur-xl">
-        <img src="/brand/persona-portraits.png" alt="SoulX historical and expert personas" className="pointer-events-none absolute right-0 top-0 h-full w-1/2 object-contain object-right opacity-20" />
+        <Image src="/brand/persona-portraits.png" alt="" width={768} height={512} sizes="(max-width: 768px) 50vw, 600px" className="pointer-events-none absolute right-0 top-0 h-full w-1/2 object-contain object-right opacity-20" />
         <div className="mb-5 flex items-center justify-between">
           <BackButton href="/" label="Back" />
           <div className="text-[10px] uppercase tracking-[0.2em] text-cyan-200">Explore minds</div>
@@ -178,7 +179,7 @@ export default function DiscoverPage() {
                 <div className="flex items-center gap-3">
                   <PersonaAvatar slug={persona.slug} name={persona.name} className="h-12 w-12 border border-cyan-300/20" />
                   <div>
-                    <h2 className="text-xl font-bold tracking-[-0.05em]">{persona.name}</h2>
+                    <h2 className="text-xl font-bold tracking-[-0.05em]">{persona.metadata.custom === true ? persona.name : <Link href={`/persona/${persona.slug}`}>{persona.name}</Link>}</h2>
                     <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{persona.profession}</p>
                   </div>
                 </div>
@@ -199,8 +200,8 @@ export default function DiscoverPage() {
 
               <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
                 <span className="text-xs text-slate-400">{persona.disclaimer}</span>
-                <Link href={persona.metadata.custom === true ? `/chat/${persona.slug}` : `/persona/${persona.slug}`} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 text-sm font-semibold text-white">
-                  {persona.metadata.custom === true ? "Chat" : "Open"} <ArrowRight className="h-4 w-4" />
+                <Link href={`/chat/${persona.slug}`} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 text-sm font-semibold text-white">
+                  Chat <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>

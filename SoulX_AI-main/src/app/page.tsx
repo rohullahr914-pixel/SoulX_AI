@@ -1,3 +1,6 @@
+import Image from "next/image";
+import { pageMetadata, publicPages } from "@/lib/seo";
+export const metadata = pageMetadata("/", publicPages["/"].title, publicPages["/"].description);
 import Link from "next/link";
 import {
   ArrowRight,
@@ -83,7 +86,7 @@ export default function Home() {
                   <div className="h-full">
                     <Link href={`/persona/${persona.slug}`} className="group block h-full rounded-[26px] border border-white/15 bg-slate-950/80 p-2.5 shadow-[0_20px_56px_rgba(2,8,23,0.55)] backdrop-blur-xl transition duration-300 hover:border-cyan-200/30">
                       <div className="hero-persona-media relative aspect-4/5 overflow-hidden rounded-[22px]">
-                        <img src={persona.avatar} alt={persona.name} className={`hero-persona-image ${heroPortraitClass[persona.slug] ?? ""}`} />
+                        <Image src={persona.avatar} alt={persona.name} fill sizes="(max-width: 640px) 55vw, 320px" preload={isCenter} className={`hero-persona-image ${heroPortraitClass[persona.slug] ?? ""}`} />
                         <div className="hero-persona-gradient" />
                         <span className="hero-persona-tag">{persona.category}</span>
                       </div>
@@ -139,7 +142,7 @@ export default function Home() {
           {spotlightPersonas.map((persona) => (
             <article key={persona.id} className="persona-card">
               <div className="persona-card-image-wrap">
-                <img src={persona.avatar} alt={persona.name} className="persona-card-image" />
+                <Image src={persona.avatar} alt={persona.name} fill sizes="(max-width: 640px) 90vw, (max-width: 1280px) 45vw, 400px" className="persona-card-image" />
                 <div className="persona-card-image-overlay" />
                 <div className="persona-card-topline">
                   <span className="persona-pill">{persona.category}</span>
@@ -152,9 +155,10 @@ export default function Home() {
               </div>
               <div className="persona-card-body">
                 <p className="persona-card-copy">{persona.shortDescription}</p>
+                <Link href={`/persona/${persona.slug}`} className="text-sm text-cyan-200">About {persona.name}</Link>
                 <div className="persona-card-footer">
                   <span className="persona-footer-meta"><Heart className="h-3.5 w-3.5 text-rose-300/80" /> {number(getDemoFansWorldwide(persona))} fans worldwide</span>
-                  <Link href={`/persona/${persona.slug}`} className="persona-chat-link">Start Chat <ArrowRight className="h-3.5 w-3.5" /></Link>
+                  <Link href={`/chat/${persona.slug}`} className="persona-chat-link">Start Chat <ArrowRight className="h-3.5 w-3.5" /></Link>
                 </div>
               </div>
             </article>
@@ -173,7 +177,7 @@ export default function Home() {
           <div className="rooms-collage">
             {[heroPersonas[0], heroPersonas[2], heroPersonas[1]].map((persona, index) => (
               <div key={persona.id} className={`rooms-avatar rooms-avatar-${index + 1}`}>
-                <img src={persona.avatar} alt={persona.name} />
+                <Image src={persona.avatar} alt={persona.name} width={160} height={200} sizes="160px" />
               </div>
             ))}
             <div className="rooms-conversation">
