@@ -4,7 +4,13 @@ import { useEffect } from "react";
 
 export function ServiceWorkerRegistration() {
   useEffect(() => {
-    if ("serviceWorker" in navigator) void navigator.serviceWorker.register("/sw.js");
+    if (!("serviceWorker" in navigator)) return;
+
+    void navigator.serviceWorker
+      .register("/sw.js", { scope: "/", updateViaCache: "none" })
+      .catch((error: unknown) => {
+        console.error("SoulX service worker registration failed", error);
+      });
   }, []);
 
   return null;

@@ -1,13 +1,20 @@
 {
-  "name": "SOULX",
-  "short_name": "SOULX",
+  "id": "/",
+  "name": "SoulX AI",
+  "short_name": "SoulX",
   "description": "One AI. A Thousand Minds.",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#020817",
   "theme_color": "#020817",
-  "orientation": "portrait-primary",
+  "categories": ["education", "productivity", "social"],
+  "prefer_related_applications": false,
   "icons": [
-    { "src": "/brand/personax-logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "/pwa/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/pwa/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/pwa/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

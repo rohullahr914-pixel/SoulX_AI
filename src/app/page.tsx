@@ -52,6 +52,10 @@ export default function Home() {
 
         <div className="home-hero-grid">
           <div className="home-hero-copy">
+            <div className="home-eyebrow" aria-label="SoulX live network">
+              <span className="home-eyebrow-dot" aria-hidden="true" />
+              One space. Many perspectives.
+            </div>
             <h1 className="home-headline">
               A world of minds.
               <span>Ready to talk.</span>

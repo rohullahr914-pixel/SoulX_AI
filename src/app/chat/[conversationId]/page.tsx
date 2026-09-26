@@ -13,11 +13,13 @@ import {
 import { getPersonaBySlug } from "@/lib/personas";
 import { PersonaAvatar } from "@/components/persona-avatar";
 import { MessageActions } from "@/components/message-actions";
+import { VoiceConversation } from "@/components/voice-conversation";
 
 type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  recordingUrl?: string;
 };
 
 const nexusExpertises = ["Software Engineering", "Artificial Intelligence", "Medicine & Health", "Law", "Business & Entrepreneurship", "Finance & Investing", "Psychology", "Science", "Engineering", "Education & Research"] as const;
@@ -91,7 +93,7 @@ export default function ChatPage() {
     );
   }
 
-  const handleSubmit = async (value?: string) => {
+  const handleSubmit = async (value?: string, recordingUrl?: string) => {
     const trimmed = (value ?? input).trim();
     if (!trimmed || isLoading) return;
 
@@ -99,6 +101,7 @@ export default function ChatPage() {
       id: crypto.randomUUID(),
       role: "user",
       content: trimmed,
+      recordingUrl,
     };
 
     setMessages((current) => [...current, userMessage]);
@@ -116,7 +119,7 @@ export default function ChatPage() {
           personaSlug: persona.slug,
           userMessage: trimmed,
           mode: "Casual",
-          language: "en",
+          language: /[\u0600-\u06ff]/.test(trimmed) ? "fa" : "en",
           history: conversationMessages.map((message) => ({
             role: message.role,
             content: message.content,
@@ -139,13 +142,14 @@ export default function ChatPage() {
 
       const assistantContent = data.content.trim();
 
+      const voiceMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant" as const,
+        content: assistantContent,
+      };
       setMessages((current) => [
         ...current,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: assistantContent,
-        },
+        voiceMessage,
       ]);
     } catch (caughtError) {
       const message = caughtError instanceof Error ? caughtError.message : "Something went wrong.";
@@ -172,7 +176,7 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex max-w-full flex-wrap items-center gap-2 self-start sm:self-auto">
             {persona.slug === "nexus" && <button type="button" onClick={() => setShowExpertiseChooser(true)} className="rounded-full border border-cyan-300/25 bg-cyan-400/10 px-3 py-2 text-sm text-cyan-100 transition hover:border-cyan-300/50">Change Expertise</button>}
             <button type="button" className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200 transition hover:border-cyan-400/40 hover:text-cyan-200">
               Regenerate
@@ -200,12 +204,15 @@ export default function ChatPage() {
             {conversationMessages.map((message) => (
               <div
                 key={message.id}
+                dir="auto"
                 className={`max-w-[88%] rounded-2xl border p-4 leading-7 ${
                   message.role === "user"
                     ? "ml-auto rounded-br-md border-violet-400/20 bg-violet-500/15 text-slate-100 shadow-[0_0_18px_rgba(168,85,247,0.08)]"
                     : "rounded-bl-md border-cyan-400/15 bg-cyan-500/8 text-slate-200"
                 }`}
               >
+                {message.recordingUrl && <audio controls preload="metadata" src={message.recordingUrl} className="mb-3 h-8 w-full" aria-label="Your voice message" />}
+                {message.recordingUrl && <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-200">Transcript</p>}
                 {message.content}
                 {message.role === "assistant" && <MessageActions id={`${persona.slug}:${message.id}`} personaName={persona.name} personaSlug={persona.slug} content={message.content} />}
               </div>
@@ -227,7 +234,12 @@ export default function ChatPage() {
             </div>
           )}
 
-          <div className="mt-5 flex flex-col gap-2 rounded-[22px] border border-white/10 bg-slate-900/75 p-2 sm:flex-row">
+          <div className="mt-5 flex flex-col gap-2 rounded-[22px] border border-white/10 bg-slate-900/75 p-2">
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+            <VoiceConversation
+              personaSlug={persona.slug}
+              conversationId={conversationRecordId}
+            />
             <input
               aria-label="Message"
               value={input}
@@ -238,6 +250,7 @@ export default function ChatPage() {
                 }
               }}
               placeholder="Type your message..."
+              dir="auto"
               className="min-w-0 flex-1 rounded-full border border-white/5 bg-transparent px-4 py-3 text-sm text-white placeholder:text-slate-400 focus:outline-none"
             />
             <button
@@ -248,6 +261,7 @@ export default function ChatPage() {
             >
               <Send className="h-4 w-4" /> Send
             </button>
+            </div>
           </div>
         </section>
 

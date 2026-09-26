@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/server/db";
-import { createSupabaseSession } from "@/lib/server/auth";
+import { createSupabaseSession, getAuthenticatedUser } from "@/lib/server/auth";
 
 export async function POST(request: Request) {
   try {
@@ -19,7 +19,9 @@ export async function POST(request: Request) {
     const limits = await supabaseAdmin.from("admin_settings").select("key,value").in("key", ["free_daily_message_limit", "free_monthly_message_limit"]);
     const configured = Object.fromEntries((limits.data ?? []).map((row) => [row.key, Number(String(row.value ?? "").replaceAll('"', ""))]));
     await supabaseAdmin.from("profiles").update({ daily_message_limit: Number.isFinite(configured.free_daily_message_limit) ? configured.free_daily_message_limit : 5, monthly_message_limit: Number.isFinite(configured.free_monthly_message_limit) ? configured.free_monthly_message_limit : 150 }).eq("id", created.data.user.id);
-    const user = await createSupabaseSession(email, password);
-    return NextResponse.json({ user: { id: user.id, name, email, language: "en", createdAt: created.data.user.created_at } }, { status: 201 });
+    await createSupabaseSession(email, password);
+    const user = await getAuthenticatedUser();
+    if (!user) throw new Error("Could not load the new account.");
+    return NextResponse.json({ user }, { status: 201 });
   } catch (error) { console.error("Supabase signup failed", error); return NextResponse.json({ error: error instanceof Error ? error.message : "Could not create the account." }, { status: 500 }); }
 }

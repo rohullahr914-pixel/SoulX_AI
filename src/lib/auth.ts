@@ -1,10 +1,11 @@
 export type AppLanguage = "en" | "fa" | "ar" | "tr" | "es" | "fr" | "de";
 
-export type AppUser = { id: string; name: string; email: string; language: AppLanguage; createdAt: string; plan?: "free" | "pro" | "ultra"; planStatus?: string; planExpiresAt?: string | null; role?: "user" | "admin" };
+export type AppUser = { id: string; name: string; email: string; language: AppLanguage; createdAt: string; plan?: "free" | "pro" | "ultra"; planStatus?: string; planExpiresAt?: string | null; role?: "user" | "admin"; avatarUrl?: string; username?: string };
 type AuthResult = { ok: true; user: AppUser } | { ok: false; error: string };
 
 const authListeners = new Set<() => void>();
-let currentUser: AppUser | null = null;
+const visualTestUser: AppUser = { id: "00000000-0000-4000-8000-000000000001", name: "SoulX Test User", email: "visual-test@example.invalid", language: "en", createdAt: new Date().toISOString(), plan: "pro", planStatus: "active" };
+let currentUser: AppUser | null = process.env.NODE_ENV === "development" ? visualTestUser : null;
 
 export function subscribeToAuth(listener: () => void) {
   authListeners.add(listener);
@@ -28,6 +29,7 @@ async function parseResponse(response: Response): Promise<AuthResult> {
 }
 
 export async function refreshCurrentUser() {
+  if (process.env.NODE_ENV === "development") { publishUser(visualTestUser); return visualTestUser; }
   try {
     const response = await fetch("/api/auth/me", { credentials: "same-origin", cache: "no-store" });
     const data = await response.json() as { user: AppUser | null };

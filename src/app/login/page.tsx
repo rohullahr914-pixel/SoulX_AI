@@ -41,7 +41,8 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/profile");
+    const next = new URLSearchParams(window.location.search).get("next");
+    router.push(next?.startsWith("/") && !next.startsWith("//") ? next : "/profile");
     router.refresh();
   };
 

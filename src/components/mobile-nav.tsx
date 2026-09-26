@@ -4,7 +4,8 @@ import Link from "next/link";
 import { ArrowRight, Menu, Sparkles, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { getCurrentUser, subscribeToAuth } from "@/lib/auth";
 
 type MobileNavProps = {
   items: { label: string; href: string }[];
@@ -13,17 +14,24 @@ type MobileNavProps = {
 export function MobileNav({ items }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const user = useSyncExternalStore(subscribeToAuth, getCurrentUser, () => null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
 
     const previousOverflow = document.body.style.overflow;
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsOpen(false);
+      if (event.key === "Escape") {
+        setIsOpen(false);
+        triggerRef.current?.focus();
+      }
     };
 
     document.body.style.overflow = "hidden";
     document.addEventListener("keydown", closeOnEscape);
+    requestAnimationFrame(() => closeRef.current?.focus());
 
     return () => {
       document.body.style.overflow = previousOverflow;
@@ -34,15 +42,16 @@ export function MobileNav({ items }: MobileNavProps) {
   return (
     <div className="lg:hidden">
       <button
+        ref={triggerRef}
         type="button"
         aria-expanded={isOpen}
         aria-controls="mobile-navigation"
         aria-label={isOpen ? "Close navigation" : "Open navigation"}
-        onClick={() => setIsOpen(true)}
-        className="relative z-[90] inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-cyan-300/35 bg-cyan-400/10 px-4 text-sm font-semibold text-cyan-50 shadow-[0_0_24px_rgba(34,211,238,0.18)] transition active:scale-[0.97]"
+        onClick={() => setIsOpen((open) => !open)}
+        className="relative z-[90] inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-cyan-300/35 bg-cyan-400/10 px-4 text-sm font-semibold text-cyan-50 shadow-[0_0_24px_rgba(34,211,238,0.18)] transition hover:border-cyan-200/60 hover:bg-cyan-300/15 active:scale-[0.97]"
       >
         <Menu aria-hidden="true" className="h-5 w-5" strokeWidth={2.5} />
-        <span className="hidden min-[390px]:inline">Menu</span>
+        <span className="hidden min-[430px]:inline">Menu</span>
       </button>
 
       {isOpen && createPortal(
@@ -57,6 +66,8 @@ export function MobileNav({ items }: MobileNavProps) {
           <nav
             id="mobile-navigation"
             aria-label="Mobile navigation menu"
+            role="dialog"
+            aria-modal="true"
             className="absolute inset-y-0 right-0 flex w-[min(88vw,24rem)] flex-col border-l border-cyan-300/20 bg-[#061022] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] shadow-[-24px_0_70px_rgba(2,8,23,0.72)]"
           >
             <div className="flex items-center justify-between border-b border-white/10 pb-5">
@@ -71,6 +82,7 @@ export function MobileNav({ items }: MobileNavProps) {
               </Link>
 
               <button
+                ref={closeRef}
                 type="button"
                 aria-label="Close navigation"
                 onClick={() => setIsOpen(false)}
@@ -102,14 +114,17 @@ export function MobileNav({ items }: MobileNavProps) {
               })}
             </div>
 
-            <div className="grid grid-cols-2 gap-3 border-t border-white/10 pt-5">
-              <Link href="/login" onClick={() => setIsOpen(false)} className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/15 bg-white/5 px-4 text-sm font-semibold text-white">
-                Log in
-              </Link>
-              <Link href="/signup" onClick={() => setIsOpen(false)} className="inline-flex min-h-12 items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-4 text-sm font-semibold text-white shadow-[0_0_24px_rgba(34,211,238,0.25)]">
-                Join now
-              </Link>
-            </div>
+            {user ? (
+              <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-5">
+                <div><p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Current plan</p><p className="mt-1 text-sm font-bold text-cyan-200">{(user.plan ?? "free").toUpperCase()}</p></div>
+                <Link href="/pricing" onClick={() => setIsOpen(false)} className="inline-flex min-h-12 items-center justify-center rounded-full border border-cyan-300/25 bg-cyan-400/10 px-4 text-sm font-semibold text-cyan-100">Manage plan</Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 border-t border-white/10 pt-5">
+                <Link href="/login" onClick={() => setIsOpen(false)} className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/15 bg-white/5 px-4 text-sm font-semibold text-white">Log in</Link>
+                <Link href="/signup" onClick={() => setIsOpen(false)} className="inline-flex min-h-12 items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-4 text-sm font-semibold text-white shadow-[0_0_24px_rgba(34,211,238,0.25)]">Join now</Link>
+              </div>
+            )}
           </nav>
         </div>,
         document.body,

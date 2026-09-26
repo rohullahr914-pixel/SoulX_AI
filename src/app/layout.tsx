@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { SITE_URL, SITE_DESCRIPTION } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
 import Link from "next/link";
@@ -6,6 +6,7 @@ import Script from "next/script";
 import { Sparkles } from "lucide-react";
 import { MobileNav } from "@/components/mobile-nav";
 import { AuthActions } from "@/components/auth-actions";
+import { MobileAccountMenu } from "@/components/mobile-account-menu";
 import { AppShell } from "@/components/app-shell";
 import "./globals.css";
 import { Geist } from "next/font/google";
@@ -26,9 +27,23 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: "SoulX — One AI. A Thousand Minds.", template: "%s | SoulX" },
   description: SITE_DESCRIPTION,
+  applicationName: "SoulX AI",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/pwa/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/pwa/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/pwa/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  appleWebApp: { capable: true, title: "SoulX AI", statusBarStyle: "black-translucent" },
   openGraph: { type: "website", siteName: "SoulX", title: "SoulX — One AI. A Thousand Minds.", description: SITE_DESCRIPTION, images: [{ url: "/social-preview", width: 1200, height: 630, alt: "SoulX — One AI. A Thousand Minds." }] },
   twitter: { card: "summary_large_image", title: "SoulX — One AI. A Thousand Minds.", description: SITE_DESCRIPTION, images: ["/social-preview"] },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#020817",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -42,16 +57,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ] }} />
         <AppShell>
           <div className="min-h-screen bg-[#020817] text-white">
-          <div className="mx-auto max-w-375 px-3 pb-8 pt-3 sm:px-6 sm:pt-5 lg:px-8">
+          <div className="mx-auto max-w-375 px-3 pb-8 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5 lg:px-8">
             <header className="sticky top-3 z-50 mb-6 rounded-3xl border border-cyan-300/20 bg-slate-950/88 px-3 py-3 shadow-[0_12px_45px_rgba(2,8,23,0.48)] backdrop-blur-2xl sm:top-5 sm:mb-8 sm:rounded-[28px] sm:px-5 lg:px-7">
               <div className="flex items-center justify-between gap-3">
-                <Link href="/" className="flex min-w-0 items-center gap-3 rounded-2xl focus-visible:outline-offset-4 sm:gap-4">
+                <Link href="/" className="flex min-w-0 items-center gap-2.5 rounded-2xl focus-visible:outline-offset-4 sm:gap-4">
                   <img src="/brand/soulx-logo.webp" width={48} height={48} decoding="async" alt="SOULX" className="h-11 w-11 shrink-0 rounded-2xl shadow-[0_0_24px_rgba(34,211,238,0.22)] sm:h-12 sm:w-12" />
                   <div>
                     <div className="text-lg font-black tracking-[-0.07em] text-white sm:text-xl">
                       SOULX
                     </div>
-                    <div className="hidden text-[9px] uppercase tracking-[0.22em] text-cyan-200/70 min-[390px]:block">One AI · A thousand minds</div>
+                    <div className="hidden text-[9px] uppercase tracking-[0.22em] text-cyan-200/70 sm:block">One AI · A thousand minds</div>
                   </div>
                 </Link>
 
@@ -63,7 +78,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   ))}
                 </nav>
 
-                <div className="flex shrink-0 items-center gap-2">
+                <div className="flex shrink-0 items-center gap-1.5 min-[390px]:gap-2">
+                  <MobileAccountMenu />
                   <MobileNav items={navItems} />
                   <div className="hidden items-center gap-2 lg:flex"><AuthActions /></div>
                 </div>

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@elevenlabs/react": "^1.15.2",
     "@supabase/supabase-js": "^2.116.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.3.0",
