@@ -43,9 +43,9 @@ export async function POST(request: Request) {
     const signed = await fetch(`https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${encodeURIComponent(config.agentId)}`, {
       headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY }, cache: "no-store", signal: AbortSignal.timeout(15_000),
     });
-    const signedBody = await signed.json().catch(() => null) as { signed_url?: unknown } | null;
+    const signedBody = await signed.json().catch(() => null) as { signed_url?: unknown; detail?: unknown } | null;
     if (!signed.ok || typeof signedBody?.signed_url !== "string" || !signedBody.signed_url) {
-      console.error("[voice] ElevenLabs signed URL failed", { status: signed.status, agentId: config.agentId });
+      console.error("[voice] ElevenLabs signed URL failed", { status: signed.status, statusText: signed.statusText, agentId: config.agentId, detail: signedBody?.detail ?? signedBody });
       return NextResponse.json({ error: "Voice could not be started right now." }, { status: 502 });
     }
     await query("UPDATE voice_sessions SET status='connected',updated_at=now() WHERE id=$1", [state.session_id]);

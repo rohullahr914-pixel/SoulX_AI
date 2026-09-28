@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   ChevronUp,
-  CircleDot,
   Crown,
   Flame,
   Heart,
@@ -26,29 +25,25 @@ const spotlightSlugs = [
 
 const spotlightPersonas = spotlightSlugs.map((slug) => personas.find((persona) => persona.slug === slug)!);
 const heroPersonas = spotlightPersonas.slice(0, 3);
-const heroFeaturePersonas = [
-  personas.find((persona) => persona.slug === "albert-einstein"),
-  personas.find((persona) => persona.slug === "michael-jackson"),
-  personas.find((persona) => persona.slug === "abraham-lincoln"),
-].filter(Boolean) as typeof spotlightPersonas extends Array<infer T> ? T[] : never;
-
 const communityCards = [
   { label: "Top creator", value: "The Curiosity Lab", meta: "12 personas · 8.4k followers", icon: Crown, href: "/community" },
   { label: "Weekly challenge", value: "The impossible brief", meta: "2,418 minds thinking together", icon: Lightbulb, href: "/challenges" },
   { label: "Leaderboard", value: "Maya Chen  ·  #01", meta: "+2,840 XP this week", icon: ChevronUp, href: "/leaderboard" },
 ];
 
-const heroPortraitClass: Record<string, string> = {
-  "albert-einstein": "hero-portrait-einstein",
-  "michael-jackson": "hero-portrait-jackson",
-  "abraham-lincoln": "hero-portrait-lincoln",
-};
-
 export default function Home() {
   return (
     <main className="home-page">
       <section className="home-hero">
-        <div className="home-hero-backdrop" />
+        <Image
+          src="/brand/soulx-human-ai-hero.png"
+          alt="A human hand and an AI hand connecting above a futuristic city"
+          fill
+          preload
+          sizes="100vw"
+          className="home-hero-image"
+        />
+        <div className="home-hero-backdrop" aria-hidden="true" />
 
         <div className="home-hero-grid">
           <div className="home-hero-copy">
@@ -77,37 +72,6 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="home-hero-visual">
-            <div className="hero-persona-orbit" aria-hidden="true" />
-            <div className="home-glow" />
-
-            {heroFeaturePersonas.map((persona, index) => {
-              const positionClass = ["home-card-center", "home-card-top-right", "home-card-bottom-left"][index];
-              const isCenter = index === 0;
-
-              return (
-                <div key={persona.id} className={`home-hero-card ${isCenter ? "hero-card-center" : "hero-card-side"} ${positionClass}`}>
-                  <div className="h-full">
-                    <Link href={`/persona/${persona.slug}`} className="group block h-full rounded-[26px] border border-white/15 bg-slate-950/80 p-2.5 shadow-[0_20px_56px_rgba(2,8,23,0.55)] backdrop-blur-xl transition duration-300 hover:border-cyan-200/30">
-                      <div className="hero-persona-media relative aspect-4/5 overflow-hidden rounded-[22px]">
-                        <Image src={persona.avatar} alt={persona.name} fill sizes="(max-width: 640px) 55vw, 320px" preload={isCenter} className={`hero-persona-image ${heroPortraitClass[persona.slug] ?? ""}`} />
-                        <div className="hero-persona-gradient" />
-                        <span className="hero-persona-tag">{persona.category}</span>
-                      </div>
-                      <div className="px-1 pb-1 pt-2.5">
-                        <p className="truncate text-sm font-semibold text-white">{persona.name}</p>
-                        <p className="mt-0.5 truncate text-[10px] text-slate-400">{persona.profession}</p>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-
-            <div className="hero-online-pill">
-              <CircleDot className="h-3 w-3 text-emerald-300" /> 1,248 minds online
-            </div>
-          </div>
         </div>
       </section>
 

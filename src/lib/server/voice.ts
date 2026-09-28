@@ -19,13 +19,28 @@ const values = (input: unknown) => Array.isArray(input) ? input.filter((item): i
 // as an override for the agent's output voice, but are never used as an agent.
 const DEFAULT_VOICE_ID = process.env.ELEVENLABS_DEFAULT_VOICE_ID || "CwhRBWXzGAHq8TQ4Fs17";
 const DEFAULT_AGENT_ID = process.env.ELEVENLABS_AGENT_ID || "";
-const agentId = (input: unknown) => {
-  const candidate = value(input, 160);
-  return /^agent_[A-Za-z0-9]+$/.test(candidate) ? candidate : DEFAULT_AGENT_ID;
+const DEFAULT_VOICE_SETTINGS = {
+  stability: 0.52,
+  similarityBoost: 0.82,
+  speed: 0.96,
+} as const;
+
+export const sanitizeAgentId = (input: unknown, fallback = "") => {
+  const raw = value(input, 240) || value(fallback, 240);
+  if (!raw) return "";
+  const normalized = raw.split("?")[0].split("/").pop() ?? raw;
+  const cleaned = normalized.trim();
+  return /^agent_[A-Za-z0-9]+$/.test(cleaned) ? cleaned : "";
 };
+
+const agentId = (input: unknown) => sanitizeAgentId(input, DEFAULT_AGENT_ID);
 const voiceId = (input: unknown) => {
   const candidate = value(input, 160);
   return /^[A-Za-z0-9]{10,128}$/.test(candidate) && !candidate.startsWith("agent_") ? candidate : DEFAULT_VOICE_ID;
+};
+const normalizeVoiceSetting = (value: unknown, min: number, max: number, fallback: number) => {
+  if (typeof value !== "number" || Number.isNaN(value)) return fallback;
+  return Math.min(Math.max(value, min), max);
 };
 
 function promptFor(persona: { name: string; description: string; personality: string; speakingStyle: string; rules: string; language: "en" | "fa" }, recentContext: string, preferredLanguage?: "en" | "fa") {
@@ -74,9 +89,9 @@ export async function loadVoiceConfig(slug: string, userId: string, recentContex
       // Preserve automatic language matching; forcing "en" breaks Persian/Dari callers.
       language: preferredLanguage,
       voiceSettings: {
-        stability: typeof settings.stability === "number" && settings.stability >= 0 && settings.stability <= 1 ? settings.stability : undefined,
-        similarityBoost: typeof settings.similarity_boost === "number" && settings.similarity_boost >= 0 && settings.similarity_boost <= 1 ? settings.similarity_boost : undefined,
-        speed: typeof settings.speed === "number" && settings.speed >= 0.7 && settings.speed <= 1.2 ? settings.speed : undefined,
+        stability: normalizeVoiceSetting(settings.stability, 0, 1, DEFAULT_VOICE_SETTINGS.stability),
+        similarityBoost: normalizeVoiceSetting(settings.similarity_boost, 0, 1, DEFAULT_VOICE_SETTINGS.similarityBoost),
+        speed: normalizeVoiceSetting(settings.speed, 0.7, 1.2, DEFAULT_VOICE_SETTINGS.speed),
       },
     };
   }
@@ -90,9 +105,9 @@ export async function loadVoiceConfig(slug: string, userId: string, recentContex
     voiceId: voiceId(data.voice_id),
     language: preferredLanguage,
     voiceSettings: {
-      stability: typeof settings.stability === "number" && settings.stability >= 0 && settings.stability <= 1 ? settings.stability : undefined,
-      similarityBoost: typeof settings.similarity_boost === "number" && settings.similarity_boost >= 0 && settings.similarity_boost <= 1 ? settings.similarity_boost : undefined,
-      speed: typeof settings.speed === "number" && settings.speed >= 0.7 && settings.speed <= 1.2 ? settings.speed : undefined,
+      stability: normalizeVoiceSetting(settings.stability, 0, 1, DEFAULT_VOICE_SETTINGS.stability),
+      similarityBoost: normalizeVoiceSetting(settings.similarity_boost, 0, 1, DEFAULT_VOICE_SETTINGS.similarityBoost),
+      speed: normalizeVoiceSetting(settings.speed, 0.7, 1.2, DEFAULT_VOICE_SETTINGS.speed),
     },
   };
 }

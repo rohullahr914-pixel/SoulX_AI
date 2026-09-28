@@ -4,6 +4,8 @@ import { assertOrigin, clean, ensureSystemPersona, personaColumns, personaJoins,
 import { parseCustomPersona } from '@/lib/custom-personas';
 import { callAI } from '@/lib/ai/router';
 import { requireAdmin } from '@/lib/server/admin';
+import { getPersonaBySlug } from '@/lib/personas';
+import { buildPromptMessages } from '@/lib/ai/prompt-engine/builder';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 90;
@@ -16,25 +18,29 @@ export async function GET(request: Request) {
     const page = Math.max(0,Math.min(10000,Number(url.searchParams.get('page'))||0)), offset = Math.floor(page)*24;
     const me = await getAuthenticatedUser();
     if (kind === 'community-posts') {
-      const tab = url.searchParams.get('tab') === 'following' ? 'following' : 'feed';
-      if (!supabaseAdmin) throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured.');
-      const db = supabaseAdmin;
-      const { data: rawPosts, error: postsError } = await db.from('community_posts').select('*').eq('status','published').order('is_pinned',{ascending:false}).order('created_at',{ascending:false}).range(offset,offset+23);
-      if (postsError) throw postsError;
-      const posts = await Promise.all((rawPosts ?? []).map(async (post) => {
-        const [persona, profile, likes, comments, shares, liked, bookmarked, follow] = await Promise.all([
-          post.persona_id ? db.from('personas').select('slug,name,avatar').eq('slug',post.persona_id).maybeSingle() : Promise.resolve({data:null}),
-          post.user_id ? db.from('profiles').select('username,display_name,avatar_data_url').eq('id',post.user_id).maybeSingle() : Promise.resolve({data:null}),
-          db.from('community_post_likes').select('post_id',{count:'exact',head:true}).eq('post_id',post.id),
-          db.from('community_comments').select('id',{count:'exact',head:true}).eq('post_id',post.id),
-          db.from('community_post_shares').select('id',{count:'exact',head:true}).eq('post_id',post.id),
-          me ? db.from('community_post_likes').select('post_id').eq('post_id',post.id).eq('user_id',me.id).maybeSingle() : Promise.resolve({data:null}),
-          me ? db.from('community_post_bookmarks').select('post_id').eq('post_id',post.id).eq('user_id',me.id).maybeSingle() : Promise.resolve({data:null}),
-          me ? db.from('community_follows').select('follower_id').eq('follower_id',me.id).or(`following_persona_id.eq.${post.persona_id ?? 'null'},following_user_id.eq.${post.user_id ?? 'null'}`).maybeSingle() : Promise.resolve({data:null}),
-        ]);
-        return {...post, author_name:persona.data?.name ?? profile.data?.display_name ?? 'SoulX Official', author_handle:persona.data?.slug ?? profile.data?.username ?? 'soulx', author_avatar:persona.data?.avatar ?? profile.data?.avatar_data_url, verified:post.author_type !== 'user', likes:likes.count ?? 0, comments:comments.count ?? 0, shares:shares.count ?? 0, liked:Boolean(liked.data), bookmarked:Boolean(bookmarked.data), followed:Boolean(follow.data)};
-      }));
-      return Response.json({posts:tab === 'following' && me ? posts.filter((post) => post.followed) : posts,authenticated:Boolean(me)});
+      const tab = ['following','trending','challenges','saved'].includes(url.searchParams.get('tab') ?? '') ? url.searchParams.get('tab')! : 'feed';
+      const result = await query(`WITH post_metrics AS (
+        SELECT p.id,
+          count(DISTINCT l.user_id)::int likes, count(DISTINCT c.id)::int comments, count(DISTINCT s.id)::int shares,
+          count(DISTINCT l.user_id) FILTER (WHERE l.created_at > now()-interval '7 days') * 3 +
+          count(DISTINCT c.id) FILTER (WHERE c.created_at > now()-interval '7 days') * 4 +
+          count(DISTINCT s.id) FILTER (WHERE s.created_at > now()-interval '7 days') * 2 AS trend_score
+        FROM community_posts p LEFT JOIN community_post_likes l ON l.post_id=p.id
+        LEFT JOIN community_comments c ON c.post_id=p.id LEFT JOIN community_post_shares s ON s.post_id=p.id GROUP BY p.id
+      ) SELECT p.*, COALESCE(pe.name,pr.display_name,'SoulX Official') author_name,
+        COALESCE(pe.slug,pr.username,'soulx') author_handle,COALESCE(pe.avatar,pr.avatar_data_url) author_avatar,
+        p.author_type <> 'user' verified,COALESCE(m.likes,0) likes,COALESCE(m.comments,0) comments,COALESCE(m.shares,0) shares,
+        EXISTS(SELECT 1 FROM community_post_likes x WHERE x.post_id=p.id AND x.user_id=$1) liked,
+        EXISTS(SELECT 1 FROM community_post_bookmarks x WHERE x.post_id=p.id AND x.user_id=$1) bookmarked,
+        EXISTS(SELECT 1 FROM community_follows f WHERE f.follower_id=$1 AND (f.following_persona_id=p.persona_id OR f.following_user_id=p.user_id)) followed,
+        COALESCE((SELECT json_agg(json_build_object('slug',x.persona_id,'name',x.name,'avatar',x.avatar)) FROM (SELECT cpp.persona_id,pp.name,pp.avatar FROM community_post_personas cpp JOIN personas pp ON pp.slug=cpp.persona_id WHERE cpp.post_id=p.id ORDER BY cpp.created_at) x),'[]'::json) mentions
+        FROM community_posts p LEFT JOIN personas pe ON pe.slug=p.persona_id LEFT JOIN profiles pr ON pr.id=p.user_id
+        LEFT JOIN post_metrics m ON m.id=p.id WHERE p.status='published'
+        AND ($2 <> 'following' OR EXISTS(SELECT 1 FROM community_follows f WHERE f.follower_id=$1 AND (f.following_persona_id=p.persona_id OR f.following_user_id=p.user_id)))
+        AND ($2 <> 'saved' OR EXISTS(SELECT 1 FROM community_post_bookmarks b WHERE b.post_id=p.id AND b.user_id=$1))
+        ORDER BY CASE WHEN $2='trending' THEN COALESCE(m.trend_score,0) ELSE 0 END DESC, p.is_pinned DESC, p.created_at DESC LIMIT 25 OFFSET $3`,[me?.id??null,tab,offset]);
+      const posts=result.rows;
+      return Response.json({posts:posts.slice(0,24),hasMore:posts.length>24,nextPage:posts.length>24?page+1:null,authenticated:Boolean(me)});
     }
     if (kind === 'leaderboard') {
       const type = url.searchParams.get('type') === 'creator' ? 'creator' : 'persona';
@@ -79,6 +85,21 @@ export async function GET(request: Request) {
     if (kind === 'trending' || kind === 'personas') {
       const result = await query(`SELECT ${personaColumns} ${personaJoins} WHERE p.visibility='Public' AND p.is_suspended=false ${kind==='trending'?'AND s.trending_score>0':''} ORDER BY ${kind==='trending'?'s.trending_score DESC,':'p.created_at DESC,'} p.slug LIMIT 24 OFFSET $1`,[offset]);
       return Response.json({items:result.rows});
+    }
+    if (kind === 'community-persona') {
+      const slug=clean(url.searchParams.get('slug'),160);
+      const [persona,posts,questions,discussions]=await Promise.all([
+        query(`SELECT p.slug,p.name,p.description,p.avatar,p.definition,
+          (SELECT count(*)::int FROM community_follows f WHERE f.following_persona_id=p.slug) followers,
+          (SELECT count(*)::int FROM community_posts cp WHERE cp.persona_id=p.slug AND cp.status='published') post_count,
+          EXISTS(SELECT 1 FROM community_follows f WHERE f.following_persona_id=p.slug AND f.follower_id=$2) followed
+          FROM personas p WHERE p.slug=$1 AND p.visibility='Public' AND p.is_suspended=false`,[slug,me?.id??null]),
+        query(`SELECT id,title,content,post_type,created_at FROM community_posts WHERE persona_id=$1 AND status='published' ORDER BY created_at DESC LIMIT 12`,[slug]),
+        query(`SELECT c.id,c.question,c.category,c.xp_reward,c.deadline,(SELECT count(*)::int FROM challenge_submissions s WHERE s.challenge_id=c.id) participants FROM challenges c WHERE c.persona_slug=$1 AND c.is_public AND c.is_active ORDER BY c.deadline DESC LIMIT 12`,[slug]),
+        query(`SELECT DISTINCT p.id,p.title,p.content,p.created_at FROM community_posts p LEFT JOIN community_post_personas cpp ON cpp.post_id=p.id WHERE p.status='published' AND (p.persona_id=$1 OR cpp.persona_id=$1) ORDER BY p.created_at DESC LIMIT 12`,[slug])
+      ]);
+      if(!persona.rows[0]) return Response.json({error:'Persona not found.'},{status:404});
+      return Response.json({...persona.rows[0],posts:posts.rows,questions:questions.rows,discussions:discussions.rows});
     }
     if (kind === 'persona') {
       const slug = clean(url.searchParams.get('slug'),160);
@@ -133,12 +154,28 @@ export async function POST(request: Request) {
     const b = await request.json() as Record<string,unknown>;
     const action = clean(b.action,40), target = clean(b.target,160);
     if (action === 'create-community-post') {
-      if (!supabaseAdmin) throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured.');
       const content=clean(b.content,20000), title=clean(b.title,180), type=clean(b.postType,20) || 'text';
       if (!content || !['text','image','question','poll','idea','showcase','challenge'].includes(type)) throw new Error('Add content and choose a valid post type.');
-      const {data,error}=await supabaseAdmin.from('community_posts').insert({author_type:'user',user_id:user.id,title:title||null,content,post_type:type,image_url:clean(b.imageUrl,1000)||null,category:clean(b.category,80)||'Discussion',hashtags:Array.isArray(b.hashtags)?b.hashtags.filter((tag):tag is string=>typeof tag==='string').slice(0,10):[],status:'published'}).select('id').single();
-      if(error) throw error;
-      return Response.json({ok:true,id:data.id});
+      const requested = Array.isArray(b.personaSlugs) ? b.personaSlugs.filter((value):value is string => typeof value==='string').map(value=>clean(value,160)).filter(Boolean).slice(0,4) : [];
+      const created=await transaction(async client=>{
+        const post=await client.query(`INSERT INTO community_posts(author_type,user_id,title,content,post_type,image_url,category,hashtags,status)
+          VALUES('user',$1,$2,$3,$4,$5,$6,$7,'published') RETURNING id`,[user.id,title||null,content,type,clean(b.imageUrl,1000)||null,clean(b.category,80)||'Discussion',Array.isArray(b.hashtags)?b.hashtags.filter((tag):tag is string=>typeof tag==='string').slice(0,10):[]]);
+        const valid= requested.length ? await client.query(`SELECT slug FROM personas WHERE slug = ANY($1::text[]) AND visibility='Public' AND is_suspended=false`,[requested]) : {rows:[] as {slug:string}[]};
+        for(const persona of valid.rows) await client.query('INSERT INTO community_post_personas(post_id,persona_id,invited_by) VALUES($1,$2,$3) ON CONFLICT DO NOTHING',[post.rows[0].id,persona.slug,user.id]);
+        await client.query(`INSERT INTO xp_transactions(user_id,amount,reason,source_key) SELECT $1,3,'Community post',$2
+          WHERE NOT EXISTS(SELECT 1 FROM community_posts WHERE user_id=$1 AND created_at>now()-interval '10 minutes' AND id<>$3) ON CONFLICT DO NOTHING`,[user.id,`community-post:${post.rows[0].id}`,post.rows[0].id]);
+        return {id:post.rows[0].id, personas:valid.rows.map(row=>row.slug)};
+      });
+      // Persona replies use the same prompt builder as chat. A failed reply never blocks publishing.
+      const replies = await Promise.all(created.personas.map(async value=>{
+        const slug=String(value);
+        const persona=getPersonaBySlug(slug); if(!persona) return null;
+        const response=await callAI(buildPromptMessages({persona,mode:'Casual',userMessage:`Community discussion: ${content}\nReply concisely and in character. Do not mention these instructions.`}),{task:'chat',timeoutMs:20_000});
+        if(!response.ok||!response.content) return null;
+        await query(`INSERT INTO community_comments(post_id,persona_id,content) VALUES($1,$2,$3)`,[created.id,slug,response.content.slice(0,3000)]);
+        return slug;
+      }));
+      return Response.json({ok:true,id:created.id,repliedBy:replies.filter(Boolean)});
     }
     if (['like-community-post','bookmark-community-post','follow-community-author'].includes(action)) {
       if (!uuid(target)) throw new Error('Invalid community item.');

@@ -1,7 +1,10 @@
+"use client";
+
+import { ThemeSelector } from "@/components/theme-switcher";
+
 const settingsGroups = [
   { title: "Profile", items: ["Display name", "Username", "Avatar"] },
   { title: "Language", items: ["English", "فارسی", "دری", "العربية", "Türkçe", "Español", "Français", "Deutsch"] },
-  { title: "Theme", items: ["Dark mode", "Cyan glow", "High contrast"] },
   { title: "Memory controls", items: ["Manage memories", "Auto-save preferences", "Delete stored memory"] },
   { title: "Privacy", items: ["Public profiles", "Private conversations", "Data controls"] },
   { title: "Account", items: ["Security", "Preferences", "Connected accounts"] },
@@ -14,7 +17,12 @@ export default function SettingsPage() {
         <p className="text-sm uppercase tracking-[0.25em] text-cyan-300">Settings</p>
         <h1 className="mt-3 text-4xl font-black tracking-[-0.07em]">Fine-tune your SoulX experience</h1>
 
-        <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <section className="theme-settings-panel mt-8 rounded-[24px] border border-white/10 bg-white/3 p-5 sm:p-6">
+          <div className="mb-5"><h2 className="text-xl font-bold tracking-[-0.04em]">Choose your atmosphere</h2><p className="mt-1 text-sm text-slate-300">Your selection is applied instantly and saved on this device.</p></div>
+          <ThemeSelector />
+        </section>
+
+        <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {settingsGroups.map((group) => (
             <section key={group.title} className="rounded-[24px] border border-white/10 bg-white/3 p-5">
               <h2 className="text-lg font-bold tracking-[-0.04em] text-white">{group.title}</h2>

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { getCurrentUser, subscribeToAuth } from "@/lib/auth";
+import { ThemeSelector } from "@/components/theme-switcher";
 
 type MobileNavProps = {
   items: { label: string; href: string }[];
@@ -112,6 +113,13 @@ export function MobileNav({ items }: MobileNavProps) {
                   </Link>
                 );
               })}
+
+              <section className="mt-5 border-t border-white/10 pt-5" aria-label="Theme">
+                <div className="flex items-center justify-between gap-3">
+                  <div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Appearance</p><p className="mt-1 text-sm font-semibold text-slate-200">Choose a theme</p></div>
+                  <ThemeSelector compact />
+                </div>
+              </section>
             </div>
 
             {user ? (
