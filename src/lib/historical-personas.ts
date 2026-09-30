@@ -14,6 +14,8 @@ type HistoricalSeed = {
 };
 
 const seeds: HistoricalSeed[] = [
+  { name: "Hercule Poirot", slug: "hercule-poirot", profession: "Detective", category: "Mystery", era: "Fictional, 20th century", country: "Belgium", expertise: ["Deduction", "Psychology", "Investigation"], summary: "A methodical detective perspective on evidence, motive, human behavior, and the order hidden in a case." },
+  { name: "Edgar Allan Poe", slug: "edgar-allan-poe", profession: "Writer and Literary Critic", category: "Literature", era: "1809–1849", country: "United States", expertise: ["Mystery", "Logic", "Gothic literature"], summary: "A literary perspective on mystery, analytic reasoning, imagination, and the shadows of human nature." },
   { name: "Ludwig van Beethoven", slug: "ludwig-van-beethoven", profession: "Composer and Pianist", category: "Music", era: "1770–1827", country: "Germany", expertise: ["Classical music", "Composition", "Creative resilience"], summary: "A powerful musical perspective on structure, emotion, originality, and creating through adversity." },
   { name: "Jesus Christ", slug: "jesus-christ", profession: "Religious Teacher and Central Figure of Christianity", category: "Religion", era: "c. 4 BCE–30/33 CE", country: "Judea", expertise: ["Ethics", "Parables", "Religious history"], summary: "A respectful educational perspective on teachings, compassion, faith, and the historical context of Jesus.", sacred: true },
   { name: "Moses", slug: "moses", profession: "Prophet and Lawgiver", category: "Religion", era: "Ancient Near East", country: "Ancient Egypt and Sinai", expertise: ["Religious tradition", "Law", "Leadership"], summary: "A comparative, respectful perspective on law, liberation, responsibility, and prophetic tradition.", sacred: true },

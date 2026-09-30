@@ -75,9 +75,10 @@ export default function DiscoverPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 text-white sm:px-6 lg:px-8">
-      <div className="relative mb-8 overflow-hidden rounded-[30px] border border-cyan-400/15 bg-slate-950/75 p-5 shadow-[0_0_35px_rgba(34,211,238,0.08)] backdrop-blur-xl">
-        <Image src="/brand/persona-portraits.png" alt="" width={768} height={512} sizes="(max-width: 768px) 50vw, 600px" className="pointer-events-none absolute right-0 top-0 h-full w-1/2 object-contain object-right opacity-20" />
-        <div className="mb-5 flex items-center justify-between">
+      <div className="relative mb-8 min-h-[17rem] overflow-hidden rounded-[30px] border border-cyan-400/15 bg-slate-950/75 p-5 shadow-[0_0_35px_rgba(34,211,238,0.08)] backdrop-blur-xl sm:min-h-[18rem] sm:p-8 lg:min-h-[19rem]">
+        <Image src="/visuals/explore-hero.webp" alt="" fill preload quality={75} sizes="(max-width: 768px) 100vw, 1280px" className="pointer-events-none object-cover object-[58%_42%] opacity-65 sm:object-[56%_44%] lg:object-[center_42%]" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(2,6,23,0.94)_0%,rgba(2,6,23,0.76)_52%,rgba(2,6,23,0.38)_100%),linear-gradient(0deg,rgba(2,6,23,0.58),rgba(2,6,23,0.06))] sm:bg-[linear-gradient(90deg,rgba(2,6,23,0.95)_0%,rgba(2,6,23,0.82)_46%,rgba(2,6,23,0.38)_100%),linear-gradient(0deg,rgba(2,6,23,0.46),rgba(2,6,23,0.08))]" />
+        <div className="relative z-10 mb-5 flex items-center justify-between">
           <BackButton href="/" label="Back" />
           <div className="text-[10px] uppercase tracking-[0.2em] text-cyan-200">Explore minds</div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import {
   ArrowRight,
@@ -373,9 +374,11 @@ export default function CreatePersonaPage() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 text-white sm:px-6 sm:py-10 lg:px-8">
       <MyCreatorLink />
-      <section className="relative overflow-hidden rounded-[34px] border border-cyan-300/15 bg-[radial-gradient(circle_at_15%_0%,rgba(34,211,238,0.16),transparent_30%),radial-gradient(circle_at_90%_20%,rgba(139,92,246,0.14),transparent_34%),rgba(2,8,23,0.88)] p-5 shadow-[0_30px_90px_rgba(2,8,23,0.5)] sm:p-8 lg:p-10">
+      <section className="relative min-h-[30rem] overflow-hidden rounded-[34px] border border-cyan-300/15 bg-[radial-gradient(circle_at_15%_0%,rgba(34,211,238,0.16),transparent_30%),radial-gradient(circle_at_90%_20%,rgba(139,92,246,0.14),transparent_34%),rgba(2,8,23,0.88)] p-5 shadow-[0_30px_90px_rgba(2,8,23,0.5)] sm:min-h-[29rem] sm:p-8 lg:min-h-[27rem] lg:p-10">
+        <Image src="/visuals/create-hero.webp" alt="" fill preload quality={75} sizes="(max-width: 768px) 100vw, 1280px" className="pointer-events-none object-cover object-[62%_48%] opacity-60 sm:object-[58%_46%] lg:object-[center_45%]" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(2,8,23,0.94)_0%,rgba(2,8,23,0.72)_53%,rgba(2,8,23,0.38)_100%),linear-gradient(0deg,rgba(2,8,23,0.6),rgba(2,8,23,0.08))] sm:bg-[linear-gradient(90deg,rgba(2,8,23,0.96)_0%,rgba(2,8,23,0.82)_48%,rgba(2,8,23,0.46)_100%),linear-gradient(0deg,rgba(2,8,23,0.52),rgba(2,8,23,0.1))]" />
         <div className="pointer-events-none absolute inset-0 bg-grid-fade opacity-70" />
-        <div className="relative">
+        <div className="relative z-10">
           <div className="flex items-center justify-between gap-4">
             <BackButton href="/explore" label="Back" />
             <span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-400/8 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-200">

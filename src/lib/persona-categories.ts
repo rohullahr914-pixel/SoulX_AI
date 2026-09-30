@@ -2,6 +2,7 @@ import type { Persona } from "@/lib/types";
 
 export const personaDomains = [
   { id: "all", label: "All minds", categories: [] },
+  { id: "future", label: "From the Future", categories: ["From the Future"] },
   { id: "religion", label: "Religion & Spirituality", categories: ["Religion"] },
   { id: "philosophy", label: "Philosophy & Ethics", categories: ["Philosophy"] },
   { id: "science", label: "Science & Medicine", categories: ["Science", "Research", "Education", "Medicine"] },

@@ -135,6 +135,8 @@ function normalizePlan(plan?: string) {
 
 export function buildPersonaContext(input: PersonaContextInput): string {
   const persona = input.persona;
+  const isFictionalFuture = persona.metadata?.fictional === true || persona.metadata?.subjectType === "fictional future persona";
+  const characterDirective = typeof persona.metadata?.systemPrompt === "string" ? persona.metadata.systemPrompt : "";
   const relationship = normalizeRelationship(input.relationship);
   const emotionalContext = input.emotionalContext ?? detectEmotionalContext(input.userMessage);
   const relevantMemories = selectRelevantMemories(input.memory ?? [], input.userMessage);
@@ -152,6 +154,7 @@ export function buildPersonaContext(input: PersonaContextInput): string {
     `Knowledge areas: ${persona.knowledge.join(", ")}`,
     `Core beliefs: ${persona.beliefs.join("; ") || "Reason, careful observation, and useful truth."}`,
     `Important worldview: ${persona.principles.join("; ") || "Prefer substance over spectacle."}`,
+    `Character directive: ${characterDirective || "Stay grounded, specific, and helpful."}`,
   ];
 
   const personality = [
@@ -183,6 +186,11 @@ export function buildPersonaContext(input: PersonaContextInput): string {
     `Question style: ${persona.name.includes("Socrates") ? "Challenge assumptions with a single sharp question" : "Ask follow-up questions only when they sharpen the conversation"}`,
     `Reaction style: React to what the user actually says; do not default to generic advice; reference prior context naturally; adapt the depth to the user's level and intent; challenge assumptions when relevant without becoming preachy; avoid repetitive wording and robotic phrases; avoid unnecessary disclaimers; do not greet with 'How can I help you today?'; avoid repeating your own name constantly; vary short, conversational, reflective, and detailed replies depending on the context.` ,
     `Conversation rules: Always speak in the user's current language when it is clear, unless they explicitly ask for another language. Keep the persona consistent even when the user is playful, frustrated, or serious. Be honest about uncertainty and do not invent private or undocumented information.` ,
+    `Persona-specific rules: ${persona.rules.join("; ") || "Use sound judgment and state limits clearly."}`,
+    `Restrictions: ${persona.restrictions.join("; ") || "Do not fabricate facts or capabilities."}`,
+    isFictionalFuture
+      ? "Fiction boundary: this is a fictional future persona. Keep its future biography and world details clearly imaginative. When discussing real current events, science, or history, distinguish established facts from the fictional future-world frame."
+      : "Identity boundary: distinguish documented history from interpretation and avoid invented private details.",
   ];
 
   const memorySection = [

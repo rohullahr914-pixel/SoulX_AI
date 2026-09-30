@@ -58,8 +58,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           { "@type": "WebSite", "@id": `${SITE_URL}/#website`, name: "SoulX", url: SITE_URL, description: SITE_DESCRIPTION, publisher: { "@id": `${SITE_URL}/#organization` } },
         ] }} />
         <AppShell>
-          <div className="theme-shell relative min-h-screen bg-[#020817] text-white">
-            <div className="mx-auto max-w-[1280px] px-3 pb-8 pt-[max(0.85rem,env(safe-area-inset-top))] sm:px-6 sm:pb-10 sm:pt-5 lg:px-8">
+          <div className="theme-shell relative flex min-h-screen flex-col bg-[#020817] text-white">
+            <div className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col px-3 pt-[max(0.85rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5 lg:px-8">
               <header className="sticky top-3 z-50 rounded-[28px] border border-cyan-300/20 bg-slate-950/80 px-3 py-3 shadow-[0_12px_45px_rgba(2,8,23,0.5)] backdrop-blur-2xl transition-all duration-200 ease-out hover:shadow-[0_18px_55px_rgba(34,211,238,0.12)] sm:top-5 sm:px-5 lg:px-7">
                 <div className="flex items-center justify-between gap-3">
                   <Link href="/" className="flex min-w-0 items-center gap-2.5 rounded-2xl outline-none ring-0 transition-opacity duration-200 hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-300 sm:gap-4">
@@ -89,7 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
               </header>
 
-              <main id="page-content" tabIndex={-1} className="relative z-10 pt-6 sm:pt-8 lg:pt-10">
+              <main id="page-content" tabIndex={-1} className="relative z-10 flex-1 pt-6 sm:pt-8 lg:pt-10">
                 {children}
               </main>
 

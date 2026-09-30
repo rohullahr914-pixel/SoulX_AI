@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import styles from "./about.module.css";
 import { motion } from "framer-motion";
 import {
@@ -55,6 +56,8 @@ export default function AboutPage() {
       <div aria-hidden="true" className="bg-grid-fade pointer-events-none absolute inset-0 opacity-40 [mask-image:linear-gradient(to_bottom,black,transparent_34%)]" />
 
       <section className="relative flex min-h-[calc(100vh-7rem)] flex-col justify-center py-16 lg:py-24">
+        <Image src="/visuals/about-hero.webp" alt="" fill preload quality={75} sizes="(max-width: 768px) 100vw, 1440px" className="pointer-events-none object-cover object-[60%_center] opacity-70 sm:object-[56%_center] sm:opacity-65 lg:object-[52%_center]" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(2,6,23,0.94)_0%,rgba(2,6,23,0.7)_54%,rgba(2,6,23,0.3)_100%),linear-gradient(0deg,rgba(2,6,23,0.82)_0%,rgba(2,6,23,0.08)_62%,rgba(2,6,23,0.36)_100%)] sm:bg-[linear-gradient(90deg,rgba(2,6,23,0.94)_0%,rgba(2,6,23,0.78)_43%,rgba(2,6,23,0.34)_100%),linear-gradient(0deg,rgba(2,6,23,0.78)_0%,rgba(2,6,23,0.06)_58%,rgba(2,6,23,0.38)_100%)]" />
         <div aria-hidden="true" className="absolute left-[12%] top-[23%] h-2 w-2 animate-pulse rounded-full bg-cyan-200 shadow-[0_0_22px_8px_rgba(34,211,238,0.28)]" />
         <div aria-hidden="true" className="absolute right-[16%] top-[34%] h-1.5 w-1.5 animate-pulse rounded-full bg-blue-300 shadow-[0_0_18px_6px_rgba(59,130,246,0.3)] [animation-delay:900ms]" />
         <div className="relative z-10 mb-16 flex items-center justify-between"><BackButton href="/" label="Back home" /><span className="hidden text-[10px] uppercase tracking-[0.25em] text-slate-500 sm:block">SoulX / The perspective platform</span></div>

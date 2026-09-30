@@ -10,6 +10,7 @@ export const navigationItems = [
 ];
 
 export const personaCategories = [
+  "From the Future",
   "History",
   "Science",
   "Technology",

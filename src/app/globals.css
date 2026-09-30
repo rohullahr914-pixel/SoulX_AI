@@ -103,7 +103,7 @@ body {
 @keyframes logo-breathe { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); } 50% { transform: scale(1.035); filter: drop-shadow(0 0 10px color-mix(in srgb, var(--cyan) 35%, transparent)); } }
 @keyframes soft-pulse { 0%, 100% { opacity: .55; transform: scale(.97); } 50% { opacity: .9; transform: scale(1.03); } }
 
-.theme-shell { min-height: 0; }
+.theme-shell { min-height: 0; overflow: clip; }
 .theme-shell > div { animation: shell-enter 380ms cubic-bezier(.22, 1, .36, 1) both; }
 .theme-shell > div::before { content: ""; position: fixed; z-index: -1; inset: -20%; pointer-events: none; background: radial-gradient(circle at 22% 14%, color-mix(in srgb, var(--cyan) 10%, transparent), transparent 24%), radial-gradient(circle at 78% 74%, color-mix(in srgb, var(--violet) 11%, transparent), transparent 28%); animation: glow-drift 16s ease-in-out infinite; will-change: transform; }
 header [src="/brand/soulx-logo.webp"] { animation: logo-breathe 5.5s ease-in-out infinite; will-change: transform, filter; }

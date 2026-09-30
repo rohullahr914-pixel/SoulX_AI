@@ -1,5 +1,6 @@
 import type { Persona } from "@/lib/types";
 import { historicalPersonas } from "@/lib/historical-personas";
+import { futurePersonas } from "@/lib/future-personas";
 
 // Demo-only audience estimates for the featured persona cards, not internet analytics.
 const demoFansWorldwide: Record<string, number> = {
@@ -813,6 +814,7 @@ const profileSeed = [
     color: "#a78bfa",
   },
   ...historicalPersonas,
+  ...futurePersonas,
 ] as const satisfies Omit<Persona, "id" | "createdAt" | "updatedAt">[];
 
 export const personas: Persona[] = profileSeed.map((persona, index) => ({
@@ -862,4 +864,3 @@ export function searchPersonas(query: string) {
     return searchable.includes(normalized);
   });
 }
-

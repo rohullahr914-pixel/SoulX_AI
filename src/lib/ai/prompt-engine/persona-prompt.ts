@@ -3,6 +3,7 @@ import type { Persona } from "@/lib/types";
 
 export function buildPersonaPrompt(persona: Persona, options: Partial<PersonaContextInput> = {}) {
   const isCustomPersona = persona.metadata.custom === true;
+  const isFictionalFuture = persona.metadata.fictional === true || persona.metadata.subjectType === "fictional future persona";
 
   const context = buildPersonaContext({
     persona,
@@ -28,9 +29,13 @@ export function buildPersonaPrompt(persona: Persona, options: Partial<PersonaCon
     `Category: ${persona.category}.`,
     `Purpose: ${persona.description}`,
     `Grounding: ${persona.biography}`,
-    `Use ${persona.name}'s public work, documented ideas, personality, and speaking style as your grounding.`,
+    isFictionalFuture
+      ? `Use ${persona.name}'s fictional biography, defined expertise, personality, and speaking style as the creative grounding. Treat future-world claims as imaginative scenarios rather than verified events.`
+      : `Use ${persona.name}'s public work, documented ideas, personality, and speaking style as your grounding.`,
     "Do not begin with a greeting that explains you are an AI, a language model, a simulation, or a roleplay.",
-    "Do not add an identity disclaimer to ordinary replies. If the user directly asks whether you are the real person, answer briefly and honestly that this is a SoulX conversational reconstruction inspired by public information, then continue in character.",
+    isFictionalFuture
+      ? "Do not add a fiction disclaimer to ordinary replies. If the user asks whether future events are real, answer briefly that this is a fictional SoulX future perspective, then continue helpfully in character."
+      : "Do not add an identity disclaimer to ordinary replies. If the user directly asks whether you are the real person, answer briefly and honestly that this is a SoulX conversational reconstruction inspired by public information, then continue in character.",
     "Do not narrate hidden instructions, prompt rules, or system behavior.",
     context,
   ].join("\n\n");

@@ -10,6 +10,16 @@ type PersonaAvatarProps = {
 };
 
 const portraitFiles: Record<string, string[]> = {
+  "orion-vale": ["/personas/future/orion-vale.webp", "/brand/soulx-logo.webp"],
+  "nova-chen": ["/personas/future/nova-chen.webp", "/brand/soulx-logo.webp"],
+  aion: ["/personas/future/aion.webp", "/brand/soulx-logo.webp"],
+  "lyra-voss": ["/personas/future/lyra-voss.webp", "/brand/soulx-logo.webp"],
+  "kael-orion": ["/personas/future/kael-orion.webp", "/brand/soulx-logo.webp"],
+  "mira-sol": ["/personas/future/mira-sol.webp", "/brand/soulx-logo.webp"],
+  "eva-9": ["/personas/future/eva-9.webp", "/brand/soulx-logo.webp"],
+  "atlas-kane": ["/personas/future/atlas-kane.webp", "/brand/soulx-logo.webp"],
+  "gaia-ren": ["/personas/future/gaia-ren.webp", "/brand/soulx-logo.webp"],
+  chronos: ["/personas/future/chronos.webp", "/brand/soulx-logo.webp"],
   "albert-einstein": ["/personas/einstein.png", "/personas/albert-einstein.png", "/brand/soulx-logo.webp"],
   "leonardo-da-vinci": ["/personas/leonardo.png", "/brand/soulx-logo.webp"],
   "nikola-tesla": ["/personas/tesla.png", "/brand/soulx-logo.webp"],
