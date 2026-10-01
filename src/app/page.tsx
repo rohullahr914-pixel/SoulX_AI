@@ -6,29 +6,98 @@ import {
   ArrowRight,
   ChevronUp,
   Crown,
-  Flame,
-  Heart,
+  GitCompareArrows,
   Lightbulb,
+  MessagesSquare,
   Sparkles,
 } from "lucide-react";
-import { getDemoFansWorldwide, personas } from "@/lib/personas";
-import { number } from "@/lib/social";
+import { personas } from "@/lib/personas";
 
-const spotlightSlugs = [
-  "albert-einstein",
-  "michael-jackson",
-  "abraham-lincoln",
-  "leonardo-da-vinci",
-  "fyodor-dostoevsky",
-  "alexander-the-great",
-];
+const mindsBeyondTime = [
+  {
+    slug: "nexus",
+    category: "Super Intelligence / Multi-Expert AI",
+    tagline: "One Mind. Ten Expertises.",
+    description: "One focused intelligence for questions across technology, science, business, health, and more.",
+    status: "Super Intelligence",
+    originalBadge: "SOULX ORIGINAL",
+    detailBadge: "10 EXPERTISES",
+    cta: "Talk to NEXUS",
+    objectPosition: "center",
+    cardStyle: "nexus",
+  },
+  {
+    slug: "lyra-voss",
+    category: "Future / Civilization",
+    tagline: "I come from a world you haven't seen yet.",
+    description: "A fictional SoulX human from 2099 exploring future cities, AI, careers, space, and everyday life.",
+    status: "Future Human",
+    originalBadge: "SOULX FUTURE ORIGINAL",
+    detailBadge: "FICTIONAL · YEAR 2099",
+    cta: "Enter 2099",
+    chatSlug: "lyra-2099",
+    objectPosition: "center 43%",
+    cardStyle: "lyra",
+  },
+  {
+    slug: "leonardo-da-vinci",
+    category: "Art / Science / Invention",
+    tagline: "Imagine beyond the limits of your time.",
+    description: "Explore creativity, invention, art, and scientific thinking with a Renaissance polymath.",
+    status: "Historical Mind",
+    originalBadge: undefined,
+    detailBadge: undefined,
+    cta: "Think With Leonardo",
+    objectPosition: "center 38%",
+    cardStyle: "leonardo",
+  },
+  {
+    slug: "nikola-tesla",
+    category: "Technology / Invention",
+    tagline: "The present is theirs. The future is mine.",
+    description: "Explore electricity, engineering, energy, and visionary ideas through Tesla's perspective.",
+    status: "Historical Mind",
+    originalBadge: undefined,
+    detailBadge: undefined,
+    cta: "Talk to Tesla",
+    objectPosition: "center 38%",
+    cardStyle: "tesla",
+  },
+  {
+    slug: "cleopatra",
+    category: "Leadership / Strategy / History",
+    tagline: "Power is built through intelligence.",
+    description: "Consider leadership, diplomacy, negotiation, and strategy through ancient Egypt's queen.",
+    status: "Historical Mind",
+    originalBadge: undefined,
+    detailBadge: undefined,
+    cta: "Speak With Cleopatra",
+    objectPosition: "center 38%",
+    cardStyle: "cleopatra",
+  },
+  {
+    slug: "marcus-aurelius",
+    category: "Philosophy / Life / Leadership",
+    tagline: "Master your mind before the world.",
+    description: "Find a Stoic perspective on discipline, purpose, resilience, and leadership.",
+    status: "Historical Mind",
+    originalBadge: undefined,
+    detailBadge: undefined,
+    cta: "Ask Marcus",
+    objectPosition: "center 28%",
+    cardStyle: "marcus",
+  },
+] as const;
 
-const spotlightPersonas = spotlightSlugs.map((slug) => personas.find((persona) => persona.slug === slug)!);
-const heroPersonas = spotlightPersonas.slice(0, 3);
 const communityCards = [
   { label: "Top creator", value: "The Curiosity Lab", meta: "12 personas · 8.4k followers", icon: Crown, href: "/community" },
   { label: "Weekly challenge", value: "The impossible brief", meta: "2,418 minds thinking together", icon: Lightbulb, href: "/challenges" },
   { label: "Leaderboard", value: "Maya Chen  ·  #01", meta: "+2,840 XP this week", icon: ChevronUp, href: "/leaderboard" },
+];
+const roomHighlights = [
+  { title: "Multi-Persona Conversations", description: "Talk with multiple personas in one room.", icon: MessagesSquare },
+  { title: "Contrasting Perspectives", description: "Compare ideas, knowledge, and viewpoints instantly.", icon: GitCompareArrows },
+  { title: "Smarter Group Dialogue", description: "Create richer conversations with more than one mind.", icon: Sparkles },
 ];
 
 export default function Home() {
@@ -96,71 +165,109 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="home-section">
+      <section className="home-section minds-section">
         <div className="home-section-header home-section-header-inline">
           <div>
-            <p className="section-kicker">The starting point</p>
-            <h2 className="section-title">Meet remarkable minds.</h2>
+            <p className="section-kicker">PAST · PRESENT · FUTURE</p>
+            <h2 className="section-title">Minds Beyond Time</h2>
           </div>
-          <Link href="/explore" className="section-link">Explore the full library <ArrowRight className="h-4 w-4" /></Link>
+          <Link href="/explore" className="section-link">Explore all minds <ArrowRight className="h-4 w-4" /></Link>
         </div>
-        <p className="section-subtitle">Explore perspectives from science, art, history, literature and beyond.</p>
+        <p className="section-subtitle">Meet extraordinary minds from history, intelligence and the future.</p>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {spotlightPersonas.map((persona) => (
-            <article key={persona.id} className="persona-card">
-              <div className="persona-card-image-wrap">
-                <Image src={persona.avatar} alt={persona.name} fill sizes="(max-width: 640px) 90vw, (max-width: 1280px) 45vw, 400px" className="persona-card-image" />
-                <div className="persona-card-image-overlay" />
-                <div className="persona-card-topline">
-                  <span className="persona-pill">{persona.category}</span>
-                  <span className="persona-fans-pill"><Flame className="h-3 w-3 text-orange-300" /> {number(getDemoFansWorldwide(persona))} fans</span>
+        <div className="minds-beyond-time-grid">
+          {mindsBeyondTime.map((featured) => {
+            const persona = personas.find((item) => item.slug === featured.slug)!;
+            const displayName = featured.slug === "cleopatra" ? "Cleopatra" : persona.name;
+
+            return (
+              <article key={persona.id} className={`minds-card minds-card--${featured.cardStyle}`}>
+                <div className="minds-card-image-wrap">
+                  <Image
+                    src={persona.avatar}
+                    alt={`Portrait representing ${displayName}`}
+                    fill
+                    sizes="(max-width: 639px) 92vw, (max-width: 959px) 45vw, 370px"
+                    quality={78}
+                    className="minds-card-image"
+                    style={{ objectPosition: featured.objectPosition }}
+                  />
+                  <div className="minds-card-image-overlay" aria-hidden="true" />
+                  <div className="minds-card-topline">
+                    <span className="minds-card-status">{featured.status}</span>
+                    {featured.originalBadge && <span className="minds-card-original">{featured.originalBadge}</span>}
+                  </div>
+                  <div className="minds-card-portrait-copy">
+                    {featured.detailBadge && <span className="minds-card-detail-badge">{featured.detailBadge}</span>}
+                    <h3 className="minds-card-name">
+                      <Link href={`/persona/${persona.slug}`} className="minds-card-title-link">
+                        {displayName}
+                      </Link>
+                    </h3>
+                  </div>
                 </div>
-                <div className="persona-card-bottomline">
-                  <p className="persona-card-mini">{persona.expertise[0]}</p>
-                  <h3>{persona.name}</h3>
+                <div className="minds-card-body">
+                  <p className="minds-card-category">{featured.category}</p>
+                  <p className="minds-card-tagline">{featured.tagline}</p>
+                  <p className="minds-card-description">{featured.description}</p>
+                  <Link href={`/chat/${"chatSlug" in featured ? featured.chatSlug : persona.slug}`} className="minds-card-cta">
+                    {featured.cta}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
                 </div>
-              </div>
-              <div className="persona-card-body">
-                <p className="persona-card-copy">{persona.shortDescription}</p>
-                <Link href={`/persona/${persona.slug}`} className="text-sm text-cyan-200">About {persona.name}</Link>
-                <div className="persona-card-footer">
-                  <span className="persona-footer-meta"><Heart className="h-3.5 w-3.5 text-rose-300/80" /> {number(getDemoFansWorldwide(persona))} fans worldwide</span>
-                  <Link href={`/chat/${persona.slug}`} className="persona-chat-link">Start Chat <ArrowRight className="h-3.5 w-3.5" /></Link>
-                </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </section>
 
-      <section className="home-section home-room-preview">
-        <div className="home-room-copy">
-          <p className="section-kicker">Rooms</p>
-          <h2 className="section-title">More than one perspective.</h2>
-          <p className="section-subtitle">Bring multiple minds into the same conversation.</p>
+      <section className="home-section home-room-preview" aria-labelledby="rooms-heading">
+        <div className="rooms-feature-layout">
+          <div className="home-room-copy">
+            <p className="section-kicker">ROOMS</p>
+            <h2 id="rooms-heading" className="section-title">More than one perspective.</h2>
+            <p className="section-subtitle">Bring multiple minds into the same conversation.</p>
+            <p className="rooms-intro-note">One question can open a conversation across centuries, disciplines, and points of view.</p>
+            <Link href="/room" className="rooms-entry-cta">
+              Enter a Room
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+
+          <div className="rooms-artwork-panel">
+            <div className="rooms-artwork-topline">
+              <span className="rooms-artwork-label"><span aria-hidden="true" />A room in session</span>
+              <span className="rooms-artwork-count">06 voices · one conversation</span>
+            </div>
+            <div className="rooms-artwork-frame">
+              <Image
+                src="/visuals/rooms-minds.webp"
+                alt="Holographic portraits of Einstein, Cleopatra, LYRA-2099, Abraham Lincoln, Marcus Aurelius, and Nikola Tesla linked in one futuristic conversation room"
+                width={1600}
+                height={686}
+                sizes="(max-width: 700px) 94vw, (max-width: 1000px) 90vw, 62vw"
+                quality={82}
+                loading="lazy"
+                className="rooms-artwork-image"
+              />
+            </div>
+            <div className="rooms-artwork-caption">
+              <span>Many minds, one shared conversation</span>
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+            </div>
+          </div>
         </div>
 
-        <div className="rooms-preview-shell">
-          <div className="rooms-collage">
-            {[heroPersonas[0], heroPersonas[2], heroPersonas[1]].map((persona, index) => (
-              <div key={persona.id} className={`rooms-avatar rooms-avatar-${index + 1}`}>
-                <Image src={persona.avatar} alt={persona.name} width={160} height={200} sizes="160px" />
+        <div className="rooms-highlights" aria-label="What you can do in a room">
+          {roomHighlights.map(({ title, description, icon: Icon }) => (
+            <article key={title} className="rooms-highlight-card">
+              <span className="rooms-highlight-icon"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+              <div className="rooms-highlight-copy">
+                <h3>{title}</h3>
+                <p>{description}</p>
               </div>
-            ))}
-            <div className="rooms-conversation">
-              <div className="rooms-conversation-ring" />
-              <div className="rooms-conversation-inner">
-                <Sparkles className="h-5 w-5 text-cyan-200" />
-              </div>
-            </div>
-          </div>
-          <div className="rooms-footer-row">
-            <div>
-              <span className="rooms-pill">Multi-persona conversations</span>
-            </div>
-            <Link href="/room" className="home-secondary-cta rooms-cta">Enter a Room</Link>
-          </div>
+            </article>
+          ))}
         </div>
       </section>
 

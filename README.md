@@ -6,9 +6,10 @@ SoulX is a Next.js application backed by Supabase Auth and Postgres for accounts
 
 1. Copy `.env.example` to `.env` and set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and the server-only `SUPABASE_SERVICE_ROLE_KEY`.
 2. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for the browser.
-3. Set the server-only `ADMIN_EMAIL` and `ADMIN_PASSWORD` values. The password is never bundled or returned to the browser; the matching Supabase Auth account must have `profiles.role = 'admin'`.
-4. Run the SQL files in `database/migrations` in Supabase SQL Editor (or with the Supabase CLI) in filename order.
-5. Install dependencies:
+3. Set the server-only `ADMIN_PASSWORD`. The matching Supabase Auth account must have `profiles.role = 'admin'`.
+4. Configure `BINANCE_API_KEY` and `BINANCE_API_SECRET` with a read-only Binance wallet API key. Do not enable trading, transfer, or withdrawal permissions. Set the USDT network and deposit address in the server environment.
+5. Run the SQL files in `database/migrations` in Supabase SQL Editor (or with the Supabase CLI) in filename order.
+6. Install dependencies:
 
 ```bash
 npm install
@@ -20,7 +21,7 @@ npm install
 npm run dev -- -p 3000
 ```
 
-The admin dashboard is available at `/admin/login` and `/admin` for the configured administrator. It includes user, Persona, plan, challenge, leaderboard, analytics, settings, subscription, usage, suspension, support search, and action log controls.
+The admin dashboard is available at `/admin/login` and `/admin` for the configured administrator. Payment requests are reviewed at `/admin/payments`; Binance verification never activates a plan until an administrator approves the request.
 
 ## Database
 
@@ -31,10 +32,13 @@ The database contains normalized tables for:
 - `profiles`: identity, role, plan, limits, and profile fields
 - `conversations` and `messages`: private chat history
 - `usage`: daily/monthly message accounting
-- `payments`: future Stripe/PayPal-ready payment records
+- `payment_requests`: USDT deposit requests, Binance verification results, and admin approval history
+- `payment_ledger_archive`: preserved historical payment ledger records
 - `admin_logs`: immutable admin action history
 
 Authentication uses Supabase Auth. Access and refresh tokens are stored in HttpOnly, SameSite cookies; passwords never enter SoulX tables. The service-role key is used only by server routes.
+
+Binance verification uses the signed read-only `GET /sapi/v1/capital/deposit/hisrec` wallet endpoint. Binance API credentials are server environment variables and are never returned to browser code.
 
 ## Verification
 

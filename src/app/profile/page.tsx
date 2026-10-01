@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import Image from "next/image";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { ArrowRight, Check, Edit3, Heart, LogOut, Plus, Search, Settings2, Share2, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { BackButton } from "@/components/back-button";
 import { PersonaAvatar } from "@/components/persona-avatar";
@@ -32,6 +33,17 @@ export default function ProfilePage() {
   const [showPicker, setShowPicker] = useState(false);
   const [query, setQuery] = useState("");
   const [shareStatus, setShareStatus] = useState("");
+  const [mysoulExists, setMysoulExists] = useState(false);
+  const currentUserId = user?.id;
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    let active = true;
+    void fetch("/api/mysoul/status", { credentials: "same-origin", cache: "no-store" }).then((response) => response.json()).then((data: { exists?: boolean }) => {
+      if (active) setMysoulExists(data.exists === true);
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, [currentUserId]);
 
   if (!user) {
     return (
@@ -101,7 +113,7 @@ export default function ProfilePage() {
         <div className="relative px-5 pb-10 sm:px-8 lg:px-10">
           <div className="-mt-16 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
-              <div className="relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-[30px] border-4 border-[#050d1e] bg-gradient-to-br from-cyan-400/35 to-violet-500/30 text-3xl font-black shadow-[0_18px_45px_rgba(2,8,23,0.55)]">{preferences.avatarDataUrl ? <img src={preferences.avatarDataUrl} alt={displayName} className="h-full w-full object-cover" /> : initials}<label htmlFor="profile-avatar" className="absolute bottom-1 right-1 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-2 border-[#050d1e] bg-cyan-400 text-slate-950"><Edit3 className="h-4 w-4" /><span className="sr-only">Upload profile photo</span></label><input id="profile-avatar" type="file" accept="image/*" onChange={handleAvatarChange} className="sr-only" /></div>
+              <div className="relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-[30px] border-4 border-[#050d1e] bg-gradient-to-br from-cyan-400/35 to-violet-500/30 text-3xl font-black shadow-[0_18px_45px_rgba(2,8,23,0.55)]">{preferences.avatarDataUrl ? <Image src={preferences.avatarDataUrl} alt={displayName} width={112} height={112} unoptimized className="h-full w-full object-cover" /> : initials}<label htmlFor="profile-avatar" className="absolute bottom-1 right-1 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-2 border-[#050d1e] bg-cyan-400 text-slate-950"><Edit3 className="h-4 w-4" /><span className="sr-only">Upload profile photo</span></label><input id="profile-avatar" type="file" accept="image/*" onChange={handleAvatarChange} className="sr-only" /></div>
               <div className="pb-1"><div className="flex flex-wrap items-center gap-2"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">Personal AI identity</p><span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] text-slate-400"><ShieldCheck className="h-3 w-3 text-cyan-300" />{visibility}</span></div><h1 className="mt-2 text-4xl font-black tracking-[-0.06em] text-white sm:text-5xl">{displayName}</h1><p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">{bio}</p></div>
             </div>
             <div className="flex flex-wrap gap-2"><button type="button" onClick={() => setIsEditing((current) => !current)} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 text-sm font-semibold text-white"><Edit3 className="h-4 w-4" />Edit profile</button><button type="button" onClick={shareProfile} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-4 text-sm font-bold text-white"><Share2 className="h-4 w-4" />Share profile</button></div>
@@ -111,6 +123,11 @@ export default function ProfilePage() {
           {isEditing && <form onSubmit={saveIdentity} className="mt-7 grid gap-4 rounded-[24px] border border-cyan-300/15 bg-cyan-400/5 p-5 sm:grid-cols-2"><label className="text-xs font-semibold text-slate-400">Display name<input name="displayName" defaultValue={displayName} required className="mt-2 w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/40" /></label><label className="text-xs font-semibold text-slate-400">Visibility<select name="visibility" defaultValue={visibility} className="mt-2 w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none"><option>Public</option><option>Private</option></select></label><label className="text-xs font-semibold text-slate-400 sm:col-span-2">Bio<textarea name="bio" defaultValue={bio} maxLength={180} className="mt-2 min-h-24 w-full resize-y rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm leading-6 text-white outline-none focus:border-cyan-300/40" /></label><div className="flex gap-2 sm:col-span-2"><button type="submit" className="inline-flex items-center gap-2 rounded-full bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white"><Check className="h-4 w-4" />Save changes</button><button type="button" onClick={() => setIsEditing(false)} className="rounded-full border border-white/10 px-5 py-2.5 text-sm text-slate-300">Cancel</button></div></form>}
 
           <div className="mt-8 grid gap-3 sm:grid-cols-3">{[["Favorite minds", favoritePersonas.length], ["Liked messages", likedMessages.length], ["Created personas", customPersonas.length]].map(([label, value]) => <div key={String(label)} className="rounded-2xl border border-white/8 bg-white/[0.025] p-4"><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</p><p className="mt-2 text-3xl font-black tracking-[-0.05em] text-white">{value}</p></div>)}</div>
+
+          <section className="mt-7 flex flex-col justify-between gap-4 rounded-[24px] border border-cyan-300/15 bg-[radial-gradient(circle_at_85%_0%,rgba(34,211,238,.10),transparent_34%),rgba(255,255,255,.02)] p-5 sm:flex-row sm:items-center sm:p-6">
+            <div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-300/8 text-cyan-200"><Sparkles className="h-4 w-4" /></span><div><div className="flex flex-wrap items-center gap-2"><h2 className="text-lg font-bold">MySoul</h2><span className="rounded-full border border-cyan-300/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[.12em] text-cyan-200">Your AI identity</span></div><p className="mt-1 text-xs leading-5 text-slate-400">Your digital identity inside SoulX. You decide what it knows and what you share.</p></div></div>
+            <div className="flex flex-wrap gap-2">{mysoulExists ? <><Link href="/mysoul/manage?section=teach" className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 px-4 text-xs font-semibold text-slate-200"><Sparkles className="h-3.5 w-3.5" />Teach MySoul</Link><Link href="/mysoul/manage" className="inline-flex min-h-10 items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 px-4 text-xs font-bold text-slate-950">Manage MySoul <ArrowRight className="h-3.5 w-3.5" /></Link></> : <Link href="/mysoul/manage" className="inline-flex min-h-10 items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 px-4 text-xs font-bold text-slate-950">Create MySoul <ArrowRight className="h-3.5 w-3.5" /></Link>}</div>
+          </section>
 
           <section className="mt-10">
             <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">Your collection</p><h2 className="mt-2 text-3xl font-black tracking-[-0.055em] text-white sm:text-4xl">Favorite personas</h2><p className="mt-2 text-sm text-slate-400">Keep several minds on your profile for quick access.</p></div><button type="button" onClick={() => setShowPicker((current) => !current)} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-400/8 px-4 text-sm font-semibold text-cyan-100"><Plus className="h-4 w-4" />Manage favorites</button></div>

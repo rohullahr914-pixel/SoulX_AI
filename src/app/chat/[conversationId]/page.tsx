@@ -20,6 +20,7 @@ type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   recordingUrl?: string;
+  voiceTranscript?: boolean;
 };
 
 const nexusExpertises = ["Software Engineering", "Artificial Intelligence", "Medicine & Health", "Law", "Business & Entrepreneurship", "Finance & Investing", "Psychology", "Science", "Engineering", "Education & Research"] as const;
@@ -27,7 +28,8 @@ const nexusExpertises = ["Software Engineering", "Artificial Intelligence", "Med
 export default function ChatPage() {
   const params = useParams<{ conversationId: string }>();
   const personaKey = params?.conversationId ?? "";
-  const staticPersona = useMemo(() => getPersonaBySlug(personaKey), [personaKey]);
+  const personaSlug = personaKey === "lyra-2099" ? "lyra-voss" : personaKey;
+  const staticPersona = useMemo(() => getPersonaBySlug(personaSlug), [personaSlug]);
   const customPersonasSnapshot = useSyncExternalStore(subscribeToCustomPersonas, getCustomPersonasSnapshot, () => "__loading__");
   const customPersona = useMemo(
     () => parseCustomPersonasSnapshot(customPersonasSnapshot).find((item) => item.id === personaKey),
@@ -213,6 +215,7 @@ export default function ChatPage() {
               >
                 {message.recordingUrl && <audio controls preload="metadata" src={message.recordingUrl} className="mb-3 h-8 w-full" aria-label="Your voice message" />}
                 {message.recordingUrl && <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-200">Transcript</p>}
+                {message.voiceTranscript && <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-200">Live voice transcript</p>}
                 {message.content}
                 {message.role === "assistant" && <MessageActions id={`${persona.slug}:${message.id}`} personaName={persona.name} personaSlug={persona.slug} content={message.content} />}
               </div>
@@ -239,6 +242,7 @@ export default function ChatPage() {
             <VoiceConversation
               personaSlug={persona.slug}
               conversationId={conversationRecordId}
+              onTranscript={(message) => setMessages((current) => current.some((item) => item.id === message.id) ? current : [...current, { ...message, voiceTranscript: true }])}
             />
             <input
               aria-label="Message"

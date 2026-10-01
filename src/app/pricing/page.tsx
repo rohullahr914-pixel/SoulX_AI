@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
-import { Check, LoaderCircle, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { Check, LoaderCircle, ShieldCheck, Sparkles, Zap, Crown } from "lucide-react";
 import { getCurrentUser, subscribeToAuth } from "@/lib/auth";
 
+type PaidPlan = "pro" | "ultra";
+
 export default function PricingPage() {
-  const [proPrice, setProPrice] = useState(5);
-  const [currency, setCurrency] = useState("USD");
-  const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [prices, setPrices] = useState({ pro: 5, ultra: 10 });
+  const [checkoutBusy, setCheckoutBusy] = useState<PaidPlan | null>(null);
   const [checkoutError, setCheckoutError] = useState("");
   const user = useSyncExternalStore(subscribeToAuth, getCurrentUser, () => null);
   const router = useRouter();
@@ -18,35 +19,49 @@ export default function PricingPage() {
   useEffect(() => {
     void fetch("/api/plans", { cache: "no-store" })
       .then((response) => response.json())
-      .then((body: { pro?: number; currency?: string }) => {
-        if (typeof body.pro === "number") setProPrice(body.pro);
-        if (typeof body.currency === "string" && /^[A-Z]{3}$/.test(body.currency)) setCurrency(body.currency);
+      .then((body: { pro?: number; ultra?: number }) => {
+        setPrices({
+          pro: typeof body.pro === "number" && body.pro > 0 ? body.pro : 5,
+          ultra: typeof body.ultra === "number" ? body.ultra : 10,
+        });
       })
       .catch(() => undefined);
   }, []);
 
-  const startCheckout = async () => {
+  const startCheckout = async (plan: PaidPlan) => {
     setCheckoutError("");
     if (!user) { router.push("/login?next=/pricing"); return; }
-    setCheckoutBusy(true);
+    setCheckoutBusy(plan);
     try {
-      const response = await fetch("/api/payments/checkout", {
+      const response = await fetch("/api/payments/binance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ plan: "pro" }),
+        body: JSON.stringify({ plan }),
       });
-      const data = (await response.json().catch(() => ({}))) as { checkoutUrl?: string; error?: string };
+      const data = (await response.json().catch(() => ({}))) as { paymentRequest?: { id: string }; error?: string };
       if (response.status === 401) { router.push("/login?next=/pricing"); return; }
-      if (!response.ok || !data.checkoutUrl) throw new Error(data.error || "Could not start checkout.");
-      window.location.assign(data.checkoutUrl);
+      if (!response.ok || !data.paymentRequest?.id) throw new Error(data.error || "Could not start your payment.");
+      router.push(`/payment/binance?paymentRequestId=${encodeURIComponent(data.paymentRequest.id)}`);
     } catch (error) {
-      setCheckoutError(error instanceof Error ? error.message : "Could not start checkout.");
-      setCheckoutBusy(false);
+      setCheckoutError(error instanceof Error ? error.message : "Could not start your payment.");
+      setCheckoutBusy(null);
     }
   };
 
-  const formattedPrice = new Intl.NumberFormat(undefined, { style: "currency", currency, maximumFractionDigits: proPrice % 1 ? 2 : 0 }).format(proPrice);
+  const paidCta = (plan: PaidPlan) => {
+    const active = user?.plan === plan && user.planStatus === "active";
+    const unavailable = plan === "ultra" && prices.ultra <= 0;
+    return (
+      <>
+        <button type="button" onClick={() => void startCheckout(plan)} disabled={Boolean(checkoutBusy) || active || unavailable} className="social-button primary mt-8 min-h-12 w-full disabled:cursor-not-allowed disabled:opacity-60">
+          {checkoutBusy === plan ? <><LoaderCircle className="h-4 w-4 animate-spin" />Preparing payment…</> : active ? `${plan === "ultra" ? "Ultra" : "Pro"} is active` : unavailable ? "Price not configured" : `Pay ${prices[plan]} USDT`}
+        </button>
+        <p className="mt-3 text-center text-xs leading-5 text-slate-500">Secure crypto payment · Manual activation after verification</p>
+      </>
+    );
+  };
+
   return (
     <main className="social-page">
       <header className="social-hero">
@@ -59,18 +74,19 @@ export default function PricingPage() {
         <Sparkles className="hidden text-cyan-300 sm:block" size={100} strokeWidth={1} />
       </header>
 
-      <div className="mt-8 grid gap-5 md:grid-cols-2">
+      <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         <PlanCard title="Free" price="Free" icon={<Sparkles />} features={["Basic Persona chats", "5 AI messages per day", "3 created Personas", "Basic challenges", "Standard AI experience"]}>
           <Link href={user ? "/profile" : "/signup"} className="social-button mt-8 min-h-12 w-full">{user ? "Open profile" : "Start free"} →</Link>
         </PlanCard>
-        <PlanCard title="Pro" price={`${formattedPrice} / month`} icon={<Zap />} featured features={["More daily AI messages", "Priority AI access", "25 created Personas", "Advanced Persona memory", "Premium Personas and voice", "Full weekly challenges", "Advanced creator statistics", "Better XP rewards", "Premium profile customization", "Early feature access"]}>
-          <button type="button" onClick={() => void startCheckout()} disabled={checkoutBusy || (user?.plan === "pro" && user.planStatus === "active")} className="social-button primary mt-8 min-h-12 w-full disabled:cursor-not-allowed disabled:opacity-60">
-            {checkoutBusy ? <><LoaderCircle className="h-4 w-4 animate-spin" />Opening secure checkout…</> : user?.plan === "pro" && user.planStatus === "active" ? "Pro is active" : "Continue with HesabPay →"}
-          </button>
+        <PlanCard title="Pro" price={`${prices.pro} USDT / month`} icon={<Zap />} featured features={["More daily AI messages", "Priority AI access", "25 created Personas", "Advanced Persona memory", "Premium Personas and voice", "Full weekly challenges", "Advanced creator statistics", "Better XP rewards", "Premium profile customization", "Early feature access"]}>
+          {paidCta("pro")}
+        </PlanCard>
+        <PlanCard title="Ultra" price={prices.ultra > 0 ? `${prices.ultra} USDT / month` : "Price coming soon"} icon={<Crown />} features={["200 AI messages per day", "100 created Personas", "Priority AI access", "Premium Personas and voice", "Advanced memory and statistics", "Full weekly challenges"]}>
+          {paidCta("ultra")}
+          {prices.ultra <= 0 && <p className="mt-3 text-center text-xs text-slate-500">Ultra checkout will open once its price is configured.</p>}
         </PlanCard>
       </div>
       {checkoutError && <p role="alert" className="mx-auto mt-5 max-w-xl rounded-2xl border border-rose-300/25 bg-rose-400/10 px-4 py-3 text-center text-sm text-rose-100">{checkoutError}</p>}
-      <p className="mt-6 text-center text-xs leading-5 text-slate-500">Checkout is hosted securely by HesabPay. Your plan changes only after SoulX receives and verifies HesabPay’s signed confirmation.</p>
     </main>
   );
 }

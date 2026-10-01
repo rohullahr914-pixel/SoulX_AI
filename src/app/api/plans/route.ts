@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 import { query } from "@/lib/server/db";
 
 export async function GET() {
-  const configuredCurrency = (process.env.HESABPAY_CURRENCY || "USD").trim().toUpperCase();
-  const currency = /^[A-Z]{3}$/.test(configuredCurrency) ? configuredCurrency : "USD";
   try {
-    const result = await query<{ value: unknown }>("SELECT value FROM admin_settings WHERE key='pro_price'", []);
-    const value = Number(String(result.rows[0]?.value ?? "5").replaceAll('"', ""));
-    return NextResponse.json({ free: 0, pro: Number.isFinite(value) ? value : 5, currency }, { headers: { "Cache-Control": "public, max-age=60" } });
+    const result = await query<{ key: string; value: unknown }>("SELECT key,value FROM admin_settings WHERE key IN ('pro_price','ultra_price')", []);
+    const valueFor = (key: string, fallback: number) => {
+      const setting = result.rows.find((row) => row.key === key)?.value;
+      const value = Number(String(setting ?? fallback).replaceAll('"', ""));
+      return Number.isFinite(value) && value >= 0 ? value : fallback;
+    };
+    return NextResponse.json({ free: 0, pro: valueFor("pro_price", 5), ultra: valueFor("ultra_price", 10), currency: "USDT" }, { headers: { "Cache-Control": "public, max-age=60" } });
   } catch {
-    return NextResponse.json({ free: 0, pro: 5, currency }, { headers: { "Cache-Control": "public, max-age=60" } });
+    return NextResponse.json({ free: 0, pro: 5, ultra: 10, currency: "USDT" }, { headers: { "Cache-Control": "public, max-age=60" } });
   }
 }

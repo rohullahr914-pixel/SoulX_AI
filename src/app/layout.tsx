@@ -11,10 +11,15 @@ import { MobileAccountMenu } from "@/components/mobile-account-menu";
 import { AppShell } from "@/components/app-shell";
 import { ThemeSelector } from "@/components/theme-switcher";
 import "./globals.css";
-import { Geist } from "next/font/google";
+import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = localFont({
+  src: "./fonts/geist-latin.woff2",
+  variable: "--font-sans",
+  weight: "100 900",
+  display: "swap",
+});
 
 const navItems = [
   { label: "Explore", href: "/explore" },
