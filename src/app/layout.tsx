@@ -131,9 +131,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=G-X95L5NXFTN"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
       />
-      <Script id="google-analytics-soulx" strategy="afterInteractive">
+      <Script id="google-analytics-soulx" strategy="lazyOnload">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){window.dataLayer.push(arguments);}

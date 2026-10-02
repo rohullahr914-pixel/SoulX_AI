@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { callAI } from "@/lib/ai/router";
 import { requireUser } from "@/lib/server/auth";
 import { assertOrigin } from "@/lib/server/social";
-import { consumeMysoulRateLimit, getOwnerSoul, trackMysoulEvent, validVisibility } from "@/lib/server/mysoul";
+import { consumeMysoulRateLimit, getOwnerSoul, trackMysoulEventSafely, validVisibility } from "@/lib/server/mysoul";
 import { supabaseAdmin } from "@/lib/server/db";
 import { MYSOUL_CATEGORIES } from "@/lib/mysoul";
 
@@ -52,8 +52,8 @@ export async function POST(request: Request) {
         p_mysoul: soul.id, p_user: user.id, p_input: input, p_category: category, p_content: content, p_visibility: body.visibility,
       });
       if (teachingError) throw teachingError;
-      await trackMysoulEvent(soul.id, "mysoul_teaching_added");
-      await trackMysoulEvent(soul.id, "mysoul_updated");
+      await trackMysoulEventSafely(soul.id, "mysoul_teaching_added");
+      await trackMysoulEventSafely(soul.id, "mysoul_updated");
       return NextResponse.json({ ok: true });
     }
     return NextResponse.json({ error: "Choose preview or save." }, { status: 400 });

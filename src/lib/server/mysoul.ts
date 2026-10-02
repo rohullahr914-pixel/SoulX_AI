@@ -64,7 +64,7 @@ export async function createOwnerSoul(user: AppUser) {
     updated_at: new Date().toISOString(),
   }, { onConflict: "user_id" }).select("*").single();
   if (error) throw error;
-  await trackMysoulEvent(data.id, "mysoul_created");
+  await trackMysoulEventSafely(data.id, "mysoul_created");
   return data as MySoulRow;
 }
 
@@ -72,6 +72,11 @@ export async function trackMysoulEvent(mysoulId: string, eventType: string) {
   const db = requireMysoulDb();
   const { error } = await db.from("mysoul_analytics_events").insert({ mysoul_id: mysoulId, event_type: eventType });
   if (error) throw error;
+}
+
+export async function trackMysoulEventSafely(mysoulId: string, eventType: string) {
+  try { await trackMysoulEvent(mysoulId, eventType); }
+  catch { console.error("Could not record MySoul analytics event"); }
 }
 
 export async function trackMysoulTopic(mysoulId: string, category: MySoulTopicCategory) {
@@ -97,6 +102,11 @@ export async function refreshMysoulScore(soul: MySoulRow) {
   const { error } = await db.from("mysouls").update({ completion_score: score, updated_at: new Date().toISOString() }).eq("id", soul.id).eq("user_id", soul.user_id);
   if (error) throw error;
   return score;
+}
+
+export async function refreshMysoulScoreSafely(soul: MySoulRow) {
+  try { return await refreshMysoulScore(soul); }
+  catch { console.error("Could not refresh MySoul completion score"); return null; }
 }
 
 export async function loadOwnerDashboard(userId: string) {
@@ -175,11 +185,11 @@ export async function updateSoul(userId: string, raw: Record<string, unknown>) {
   const { data, error } = await db.from("mysouls").update(values).eq("id", soul.id).eq("user_id", userId).select("*").single();
   if (error) throw error;
   if (["display_name", "about", "occupation", "languages"].some((key) => Object.hasOwn(values, key))) {
-    const score = await refreshMysoulScore(data as MySoulRow);
-    (data as MySoulRow).completion_score = score;
+    const score = await refreshMysoulScoreSafely(data as MySoulRow);
+    if (score !== null) (data as MySoulRow).completion_score = score;
   }
-  if (values.public_enabled === true && !soul.public_enabled) await trackMysoulEvent(soul.id, "mysoul_public_enabled");
-  await trackMysoulEvent(soul.id, "mysoul_updated");
+  if (values.public_enabled === true && !soul.public_enabled) await trackMysoulEventSafely(soul.id, "mysoul_public_enabled");
+  await trackMysoulEventSafely(soul.id, "mysoul_updated");
   return data as MySoulRow;
 }
 

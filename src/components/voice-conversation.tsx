@@ -1,6 +1,6 @@
 "use client";
 
-import { Conversation } from "@elevenlabs/react";
+import type { Conversation } from "@elevenlabs/react";
 import { LoaderCircle, LockKeyhole, Mic, MicOff, PhoneOff, Timer, Volume2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -145,6 +145,11 @@ export function VoiceConversation({
 
     let reservedSessionId: string | null = null;
     try {
+      // The voice SDK is only needed after a user starts a call. Keep its
+      // audio/WebRTC code out of the initial text-chat bundle.
+      const { Conversation } = await import("@elevenlabs/react");
+      if (!mountedRef.current || attempt !== attemptRef.current) return;
+
       const response = await fetch("/api/voice/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

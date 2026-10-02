@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, UserRound } from "lucide-react";
+import { ArrowUpRight, BrainCircuit, UserRound } from "lucide-react";
 import { useSyncExternalStore } from "react";
 import { getCurrentUser, subscribeToAuth } from "@/lib/auth";
 
@@ -10,10 +10,15 @@ export function AuthActions() {
 
   if (user) {
     return (
-      <Link href="/profile" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_0_30px_rgba(34,211,238,0.4)] transition hover:brightness-110">
-        <UserRound className="h-4 w-4" />
-        Profile
-      </Link>
+      <div className="flex items-center gap-2">
+        <Link href="/mysoul/manage" aria-label="Manage MySoul" title="Manage MySoul" className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-cyan-300/25 bg-cyan-300/8 text-cyan-200 transition hover:border-cyan-200/50 hover:bg-cyan-300/15 hover:text-white">
+          <BrainCircuit className="h-4 w-4" aria-hidden="true" />
+        </Link>
+        <Link href="/profile" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_0_30px_rgba(34,211,238,0.4)] transition hover:brightness-110">
+          <UserRound className="h-4 w-4" />
+          Profile
+        </Link>
+      </div>
     );
   }
 

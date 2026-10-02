@@ -109,7 +109,7 @@ export default function Home() {
           alt="A human hand and an AI hand connecting above a futuristic city"
           fill
           preload
-          sizes="100vw"
+          sizes="(max-width: 639px) calc(100vw - 24px), (max-width: 1023px) calc(100vw - 48px), (max-width: 1279px) calc(100vw - 64px), 1216px"
           className="home-hero-image"
         />
         <div className="home-hero-backdrop" aria-hidden="true" />

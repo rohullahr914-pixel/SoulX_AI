@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/server/auth";
 import { assertOrigin } from "@/lib/server/social";
-import { getOwnerSoul, RECORD_FIELDS, RECORD_TABLES, refreshMysoulScore, sanitizeRecord, trackMysoulEvent } from "@/lib/server/mysoul";
+import { getOwnerSoul, RECORD_FIELDS, RECORD_TABLES, refreshMysoulScoreSafely, sanitizeRecord, trackMysoulEventSafely } from "@/lib/server/mysoul";
 import { supabaseAdmin } from "@/lib/server/db";
 
 export const runtime = "nodejs";
@@ -77,8 +77,8 @@ export async function POST(request: Request) {
     }
     if (result.error) throw result.error;
     if (!result.data) return NextResponse.json({ error: "That item could not be found." }, { status: 404 });
-    if (collection !== "training_samples") await refreshMysoulScore(soul);
-    await trackMysoulEvent(soul.id, "mysoul_updated");
+    if (collection !== "training_samples") await refreshMysoulScoreSafely(soul);
+    await trackMysoulEventSafely(soul.id, "mysoul_updated");
     const data = collection === "training_samples" ? { id: result.data.id, sample_type: result.data.sample_type, created_at: result.data.created_at } : result.data;
     return NextResponse.json({ ok: true, record: data }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) { return replyError(error); }
@@ -101,8 +101,8 @@ export async function DELETE(request: Request) {
     else return NextResponse.json({ error: "Choose a valid item to remove." }, { status: 400 });
     const { error } = await deletion;
     if (error) throw error;
-    if (collection !== "training_samples") await refreshMysoulScore(soul);
-    await trackMysoulEvent(soul.id, "mysoul_updated");
+    if (collection !== "training_samples") await refreshMysoulScoreSafely(soul);
+    await trackMysoulEventSafely(soul.id, "mysoul_updated");
     return NextResponse.json({ ok: true });
   } catch (error) { return replyError(error); }
 }

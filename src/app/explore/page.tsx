@@ -22,10 +22,17 @@ import {
 } from "@/lib/persona-categories";
 
 type DiscoverFilterId = PersonaDomainId | "popular" | "mine";
+const PERSONAS_PER_PAGE = 24;
 
 export default function DiscoverPage() {
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<DiscoverFilterId>("all");
+  const [visibleCount, setVisibleCount] = useState(PERSONAS_PER_PAGE);
+
+  function selectFilter(filter: DiscoverFilterId) {
+    setActiveFilter(filter);
+    setVisibleCount(PERSONAS_PER_PAGE);
+  }
   const customPersonasSnapshot = useSyncExternalStore(subscribeToCustomPersonas, getCustomPersonasSnapshot, () => "__loading__");
   const customPersonas = useMemo(
     () => parseCustomPersonasSnapshot(customPersonasSnapshot).map(customPersonaToPersona),
@@ -94,7 +101,10 @@ export default function DiscoverPage() {
             <input
               aria-label="Search personas"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setVisibleCount(PERSONAS_PER_PAGE);
+              }}
               placeholder="Search by name, profession, expertise, category"
               className="w-full bg-transparent text-sm text-white placeholder:text-slate-400 focus:outline-none"
             />
@@ -109,7 +119,7 @@ export default function DiscoverPage() {
             <button
               type="button"
               aria-pressed={activeFilter === "all"}
-              onClick={() => setActiveFilter("all")}
+              onClick={() => selectFilter("all")}
               className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
                 activeFilter === "all"
                   ? "border-cyan-400/60 bg-cyan-500/12 text-cyan-100"
@@ -121,7 +131,7 @@ export default function DiscoverPage() {
             <button
               type="button"
               aria-pressed={activeFilter === "popular"}
-              onClick={() => setActiveFilter("popular")}
+              onClick={() => selectFilter("popular")}
               className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
                 activeFilter === "popular"
                   ? "border-amber-300/60 bg-amber-300/12 text-amber-100 shadow-[0_0_18px_rgba(251,191,36,0.1)]"
@@ -134,7 +144,7 @@ export default function DiscoverPage() {
             <button
               type="button"
               aria-pressed={activeFilter === "mine"}
-              onClick={() => setActiveFilter("mine")}
+              onClick={() => selectFilter("mine")}
               className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
                 activeFilter === "mine"
                   ? "border-violet-300/50 bg-violet-400/12 text-violet-100"
@@ -154,7 +164,7 @@ export default function DiscoverPage() {
             key={filter.id}
             type="button"
             aria-pressed={activeFilter === filter.id}
-            onClick={() => setActiveFilter(filter.id)}
+            onClick={() => selectFilter(filter.id)}
             className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 transition ${
               activeFilter === filter.id
                 ? "border-cyan-400/60 bg-cyan-500/12 text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.08)]"
@@ -168,13 +178,13 @@ export default function DiscoverPage() {
       </section>
 
       <div className="mb-5 flex items-center justify-between text-sm text-slate-300">
-        <span>Showing {filteredPersonas.length} persona{filteredPersonas.length === 1 ? "" : "s"}</span>
+        <span aria-live="polite">Showing {Math.min(visibleCount, filteredPersonas.length)} of {filteredPersonas.length} persona{filteredPersonas.length === 1 ? "" : "s"}</span>
         <Link href="/room" className="font-medium text-cyan-300 transition hover:text-cyan-200">Open Rooms →</Link>
       </div>
 
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {filteredPersonas.length > 0 ? (
-          filteredPersonas.map((persona) => (
+          filteredPersonas.slice(0, visibleCount).map((persona) => (
             <div key={persona.id} className="rounded-[26px] border border-white/10 bg-slate-900/60 p-5 shadow-[0_0_24px_rgba(15,23,42,0.8)] transition hover:-translate-y-1 hover:border-cyan-400/40">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -213,6 +223,17 @@ export default function DiscoverPage() {
           </div>
         )}
       </div>
+      {visibleCount < filteredPersonas.length && (
+        <div className="mt-8 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((count) => count + PERSONAS_PER_PAGE)}
+            className="rounded-full border border-cyan-300/30 bg-cyan-500/10 px-6 py-3 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300/60 hover:bg-cyan-500/20 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-300"
+          >
+            Show more minds
+          </button>
+        </div>
+      )}
     </main>
   );
 }

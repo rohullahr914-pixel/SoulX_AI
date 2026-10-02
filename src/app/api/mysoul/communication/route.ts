@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { callAI } from "@/lib/ai/router";
 import { requireUser } from "@/lib/server/auth";
 import { assertOrigin } from "@/lib/server/social";
-import { consumeMysoulRateLimit, getOwnerSoul, trackMysoulEvent, validVisibility } from "@/lib/server/mysoul";
+import { consumeMysoulRateLimit, getOwnerSoul, trackMysoulEventSafely, validVisibility } from "@/lib/server/mysoul";
 import { supabaseAdmin } from "@/lib/server/db";
 
 export const runtime = "nodejs";
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       if (!validVisibility(body.visibility)) return NextResponse.json({ error: "Choose a valid privacy level." }, { status: 400 });
       const { error } = await supabaseAdmin.from("mysoul_communication_profile").upsert({ mysoul_id: soul.id, visibility: body.visibility, updated_at: new Date().toISOString() }, { onConflict: "mysoul_id" });
       if (error) throw error;
-      await trackMysoulEvent(soul.id, "mysoul_updated");
+      await trackMysoulEventSafely(soul.id, "mysoul_updated");
       return NextResponse.json({ ok: true });
     }
     if (body.action !== "analyze") return NextResponse.json({ error: "Choose analyze or visibility." }, { status: 400 });
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     };
     const { data, error } = await supabaseAdmin.from("mysoul_communication_profile").upsert(profile, { onConflict: "mysoul_id" }).select("*").single();
     if (error) throw error;
-    await trackMysoulEvent(soul.id, "mysoul_updated");
+    await trackMysoulEventSafely(soul.id, "mysoul_updated");
     return NextResponse.json({ ok: true, communication: data, sampleCount: samples.length, suggestedSampleCount: samples.length < 10 ? 10 : 30 }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     const message = (error as Error)?.message ?? "";
