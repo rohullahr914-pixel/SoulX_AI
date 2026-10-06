@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { SITE_URL, SITE_DESCRIPTION } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
 import Link from "next/link";
@@ -53,7 +54,9 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html lang="en" data-theme="cosmic" data-scroll-behavior="smooth" className={cn("font-sans antialiased", geist.variable)}>
       <body className="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-cyan-400/30 selection:text-white">
@@ -65,10 +68,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppShell>
           <div className="theme-shell relative flex min-h-screen flex-col bg-[#020817] text-white">
             <div className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col px-3 pt-[max(0.85rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5 lg:px-8">
-              <header className="sticky top-3 z-50 rounded-[28px] border border-cyan-300/20 bg-slate-950/80 px-3 py-3 shadow-[0_12px_45px_rgba(2,8,23,0.5)] backdrop-blur-2xl transition-all duration-200 ease-out hover:shadow-[0_18px_55px_rgba(34,211,238,0.12)] sm:top-5 sm:px-5 lg:px-7">
+              <header className="sticky top-2 z-50 rounded-[24px] border border-cyan-300/20 bg-slate-950/80 px-2 py-2 shadow-[0_12px_45px_rgba(2,8,23,0.5)] backdrop-blur-2xl transition-all duration-200 ease-out hover:shadow-[0_18px_55px_rgba(34,211,238,0.12)] sm:top-5 sm:rounded-[28px] sm:px-5 sm:py-3 lg:px-7">
                 <div className="flex items-center justify-between gap-3">
                   <Link href="/" className="flex min-w-0 items-center gap-2.5 rounded-2xl outline-none ring-0 transition-opacity duration-200 hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-300 sm:gap-4">
-                    <img src="/brand/soulx-logo.webp" width={48} height={48} decoding="async" alt="SOULX" className="h-11 w-11 shrink-0 rounded-2xl shadow-[0_0_24px_rgba(34,211,238,0.22)] sm:h-12 sm:w-12" />
+                    <img src="/brand/soulx-logo.webp" width={48} height={48} decoding="async" alt="SOULX" className="h-10 w-10 shrink-0 rounded-xl shadow-[0_0_24px_rgba(34,211,238,0.22)] sm:h-12 sm:w-12 sm:rounded-2xl" />
                     <div className="min-w-0">
                       <div className="text-lg font-black tracking-[-0.07em] text-white sm:text-xl">
                         SOULX
@@ -132,8 +135,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=G-X95L5NXFTN"
         strategy="lazyOnload"
+        nonce={nonce}
       />
-      <Script id="google-analytics-soulx" strategy="lazyOnload">
+      <Script id="google-analytics-soulx" strategy="lazyOnload" nonce={nonce}>
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){window.dataLayer.push(arguments);}

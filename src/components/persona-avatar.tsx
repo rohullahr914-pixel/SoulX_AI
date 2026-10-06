@@ -35,7 +35,7 @@ const portraitFiles: Record<string, string[]> = {
   "fyodor-dostoevsky": ["/personas/fyodor-dostoevsky.jpg", "/brand/soulx-logo.webp"],
   nexus: ["/personas/nexus-logo.webp", "/brand/soulx-logo.webp"],
   "sherlock-holmes": ["/personas/sherlock-holmes.jpg", "/brand/soulx-logo.webp"],
-  "michael-jackson": ["/personas/michael-jackson.png", "/personas/michael-jackson.jpg", "/brand/soulx-logo.webp"],
+  "michael-jackson": ["/personas/michael-jackson.jpg", "/brand/soulx-logo.webp"],
   "isaac-newton": ["/personas/isaac-newton.jpg", "/brand/soulx-logo.webp"],
   "muhammad-ali": ["/personas/muhammad-ali.jpg", "/brand/soulx-logo.webp"],
   "charlie-chaplin": ["/personas/charlie-chaplin.jpg", "/brand/soulx-logo.webp"],

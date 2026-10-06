@@ -1942,6 +1942,62 @@ body {
   }
 }
 
+/* Chat workspace controls shared by the full-height desktop and mobile UI. */
+.chat-icon-button {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.04);
+  color: #cbd5e1;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.chat-icon-button:hover {
+  border-color: rgb(103 232 249 / 0.35);
+  background: rgb(34 211 238 / 0.07);
+  color: #ecfeff;
+}
+
+.chat-icon-button:active { transform: scale(0.96); }
+
+.chat-tool {
+  display: flex;
+  width: 100%;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 0.03);
+  padding: 0 1rem;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.chat-tool:hover { border-color: rgb(34 211 238 / 0.35); background: rgb(34 211 238 / 0.06); color: white; }
+.chat-tool[aria-pressed="true"] { border-color: rgb(196 181 253 / 0.35); background: rgb(167 139 250 / 0.1); color: #ede9fe; }
+.chat-tool:disabled { cursor: not-allowed; opacity: 0.5; }
+
+.message-quick-action {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: #94a3b8;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.message-quick-action:hover { background: rgb(255 255 255 / 0.08); color: #cffafe; }
+.chat-typing-dot { width: 0.5rem; height: 0.5rem; border-radius: 999px; background: #67e8f9; animation: bounce 1s infinite; }
+
 /* Homepage cinematic hero: the supplied artwork stays prominent while the
    copy remains legible across wide screens, tablets, and phones. */
 .home-hero {

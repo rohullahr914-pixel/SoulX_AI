@@ -4,6 +4,7 @@ import test from "node:test";
 import ts from "typescript";
 
 const migration = await readFile(new URL("../database/migrations/018_mysoul.sql", import.meta.url), "utf8");
+const onboardingMigration = await readFile(new URL("../database/migrations/019_mysoul_onboarding_completed.sql", import.meta.url), "utf8");
 const coreSource = await readFile(new URL("../src/lib/mysoul.ts", import.meta.url), "utf8");
 const coreJs = ts.transpileModule(coreSource, { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 } }).outputText;
 const core = await import(`data:text/javascript;base64,${Buffer.from(coreJs).toString("base64")}`);
@@ -49,4 +50,8 @@ test("every MySoul table enables row level security", () => {
   for (const table of tables) {
     assert.ok(migration.includes(`ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY`) || dynamicPolicyTables.includes(`'${table}'`), `${table} does not enable RLS`);
   }
+});
+
+test("existing MySoul tables gain the onboarding completion column", () => {
+  assert.match(onboardingMigration, /ALTER TABLE public\.mysouls\s+ADD COLUMN IF NOT EXISTS onboarding_completed boolean NOT NULL DEFAULT false/i);
 });

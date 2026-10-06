@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BrainCircuit, CreditCard, Heart, LogIn, LogOut, Settings2, UserRound } from "lucide-react";
+import { createPortal } from "react-dom";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { getCurrentUser, logoutUser, subscribeToAuth } from "@/lib/auth";
 import { getProfilePreferencesSnapshot, subscribeToProfile } from "@/lib/profile";
@@ -24,6 +25,7 @@ export function MobileAccountMenu() {
   const profileSnapshot = useSyncExternalStore(subscribeToProfile, getProfilePreferencesSnapshot, () => "");
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const firstItemRef = useRef<HTMLAnchorElement>(null);
   const router = useRouter();
@@ -37,7 +39,8 @@ export function MobileAccountMenu() {
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (!rootRef.current?.contains(target) && !menuRef.current?.contains(target)) setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -45,7 +48,10 @@ export function MobileAccountMenu() {
         triggerRef.current?.focus();
       }
       if (event.key !== "Tab" || !rootRef.current) return;
-      const focusable = [...rootRef.current.querySelectorAll<HTMLElement>('a[href],button:not([disabled])')];
+      const focusable = [
+        ...rootRef.current.querySelectorAll<HTMLElement>('a[href],button:not([disabled])'),
+        ...(menuRef.current?.querySelectorAll<HTMLElement>('a[href],button:not([disabled])') ?? []),
+      ];
       if (!focusable.length) return;
       const first = focusable[0], last = focusable[focusable.length - 1];
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
@@ -77,7 +83,7 @@ export function MobileAccountMenu() {
         aria-label="Manage MySoul"
         title="Manage MySoul"
         onClick={() => setOpen(false)}
-        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cyan-300/25 bg-cyan-300/8 text-cyan-200 transition hover:border-cyan-200/50 hover:bg-cyan-300/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
+        className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cyan-300/25 bg-cyan-300/8 text-cyan-200 transition hover:border-cyan-200/50 hover:bg-cyan-300/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 min-[390px]:inline-flex"
       >
         <BrainCircuit className="h-4 w-4" aria-hidden="true" />
       </Link>
@@ -100,8 +106,8 @@ export function MobileAccountMenu() {
           <span className="absolute -bottom-1 -right-1 rounded-full border-2 border-slate-950 bg-cyan-300 px-1.5 py-0.5 text-[7px] font-black leading-none text-slate-950">{plan}</span>
         </button>
 
-        {open && (
-          <div id="mobile-account-menu" role="menu" aria-label="Account" className="absolute right-0 top-[calc(100%+0.75rem)] z-[95] w-[min(20rem,calc(100vw-1.5rem))] overflow-hidden rounded-3xl border border-cyan-300/20 bg-[#061022]/98 p-2 shadow-[0_24px_70px_rgba(2,8,23,0.75)] backdrop-blur-2xl">
+        {open && createPortal(
+          <div ref={menuRef} id="mobile-account-menu" role="menu" aria-label="Account" className="fixed left-3 right-3 top-[calc(max(0.85rem,env(safe-area-inset-top))+4.75rem)] z-[110] max-h-[calc(100dvh-6.5rem-env(safe-area-inset-bottom))] overflow-y-auto rounded-3xl border border-cyan-300/20 bg-[#061022]/98 p-2 shadow-[0_24px_70px_rgba(2,8,23,0.75)] backdrop-blur-2xl sm:left-auto sm:right-6 sm:top-[5.5rem] sm:w-80">
             <div className="rounded-[20px] border border-white/8 bg-white/[0.035] px-4 py-3">
               <p className="truncate text-sm font-bold text-white">{user.name}</p>
               <div className="mt-1.5 flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.16em] text-slate-400"><span>Current plan</span><span className="rounded-full bg-cyan-400/12 px-2 py-1 font-bold text-cyan-200">{plan}</span></div>
@@ -121,7 +127,8 @@ export function MobileAccountMenu() {
             >
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-400/10"><LogOut className="h-4 w-4" aria-hidden="true" /></span>Log out
             </button>
-          </div>
+          </div>,
+          document.body,
         )}
       </div>
     </div>

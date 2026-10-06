@@ -69,7 +69,7 @@ export function MobileNav({ items }: MobileNavProps) {
             aria-label="Mobile navigation menu"
             role="dialog"
             aria-modal="true"
-            className="absolute inset-y-0 right-0 flex w-[min(88vw,24rem)] flex-col border-l border-cyan-300/20 bg-[#061022] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] shadow-[-24px_0_70px_rgba(2,8,23,0.72)]"
+            className="absolute inset-y-0 right-0 flex w-[min(90vw,24rem)] flex-col overflow-y-auto overscroll-contain border-l border-cyan-300/20 bg-[#061022] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-[-24px_0_70px_rgba(2,8,23,0.72)] sm:px-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pt-[max(1.25rem,env(safe-area-inset-top))]"
           >
             <div className="flex items-center justify-between border-b border-white/10 pb-5">
               <Link href="/" className="flex items-center gap-3" onClick={() => setIsOpen(false)}>
@@ -102,7 +102,7 @@ export function MobileNav({ items }: MobileNavProps) {
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     onClick={() => setIsOpen(false)}
-                    className={`mb-2 flex min-h-14 items-center justify-between rounded-2xl border px-4 text-base font-medium transition active:scale-[0.98] ${
+                    className={`mb-1.5 flex min-h-12 items-center justify-between rounded-2xl border px-4 text-sm font-medium transition active:scale-[0.98] sm:mb-2 sm:min-h-14 sm:text-base ${
                       active
                         ? "border-cyan-300/35 bg-cyan-400/12 text-cyan-100"
                         : "border-transparent text-slate-200 hover:border-white/10 hover:bg-white/5 hover:text-white"
