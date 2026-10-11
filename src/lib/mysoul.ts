@@ -115,3 +115,8 @@ export function retrieveMysoulFacts(message: string, facts: RetrievedMySoulFact[
 export function shouldReturnUnknown(message: string, retrievedCount: number) {
   return isPersonalQuestion(message) && retrievedCount === 0;
 }
+
+export function repairFalseUnknownAnswer(answer: string, retrieved: RetrievedMySoulFact[]) {
+  if (!retrieved.length || !/\bi haven['’]t shared much about that yet\b/i.test(answer)) return answer;
+  return retrieved[0].text;
+}

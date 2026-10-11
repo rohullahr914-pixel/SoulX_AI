@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "test:mysoul": "node scripts/mysoul.test.mjs",
+    "test:mysoul:live": "node scripts/mysoul-e2e.mjs",
+    "test:rooms": "node scripts/rooms.test.mjs",
+    "test:features": "node --test scripts/mysoul.test.mjs scripts/rooms.test.mjs",
     "test:ai": "node --test scripts/deepseek.test.mjs scripts/ai-router.test.mjs",
     "test:deepseek:live": "node scripts/deepseek-smoke.mjs"
   },

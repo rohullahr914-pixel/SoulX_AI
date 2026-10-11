@@ -8,7 +8,7 @@ const onboardingMigration = await readFile(new URL("../database/migrations/019_m
 const coreSource = await readFile(new URL("../src/lib/mysoul.ts", import.meta.url), "utf8");
 const coreJs = ts.transpileModule(coreSource, { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 } }).outputText;
 const core = await import(`data:text/javascript;base64,${Buffer.from(coreJs).toString("base64")}`);
-const { categorizeMySoulTopic, retrieveMysoulFacts, shouldReturnUnknown } = core;
+const { categorizeMySoulTopic, repairFalseUnknownAnswer, retrieveMysoulFacts, shouldReturnUnknown } = core;
 
 test("unknown favorite questions do not retrieve unrelated personal facts", () => {
   const facts = [
@@ -27,6 +27,12 @@ test("profile retrieval matches location questions to location fields only", () 
 
   const location = [{ source: "profile", priority: 1, category: "city", text: "Kabul" }];
   assert.deepEqual(retrieveMysoulFacts("Where do I live?", location).map((fact) => fact.text), ["Kabul"]);
+});
+
+test("a model cannot claim ignorance when an approved fact answers the question", () => {
+  const facts = [{ source: "knowledge", priority: 6, category: "Favorites", text: "My favorite color is blue." }];
+  assert.equal(repairFalseUnknownAnswer("I haven't shared much about that yet.", facts), "My favorite color is blue.");
+  assert.equal(repairFalseUnknownAnswer("I haven't shared much about that yet.", []), "I haven't shared much about that yet.");
 });
 
 test("coarse topic analytics do not retain visitor message text", () => {

@@ -4,12 +4,12 @@ import { SITE_URL, SITE_DESCRIPTION } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
 import Link from "next/link";
 import Script from "next/script";
-import { Sparkles } from "lucide-react";
-import { SocialLinks } from "@/components/social-links";
+import { Search } from "lucide-react";
 import { MobileNav } from "@/components/mobile-nav";
 import { AuthActions } from "@/components/auth-actions";
 import { MobileAccountMenu } from "@/components/mobile-account-menu";
 import { AppShell } from "@/components/app-shell";
+import { SiteFooter } from "@/components/site-footer";
 import { ThemeSelector } from "@/components/theme-switcher";
 import "./globals.css";
 import localFont from "next/font/local";
@@ -67,14 +67,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         ] }} />
         <AppShell>
           <div className="theme-shell relative flex min-h-screen flex-col bg-[#020817] text-white">
-            <div className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col px-3 pt-[max(0.85rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5 lg:px-8">
-              <header className="sticky top-2 z-50 rounded-[24px] border border-cyan-300/20 bg-slate-950/80 px-2 py-2 shadow-[0_12px_45px_rgba(2,8,23,0.5)] backdrop-blur-2xl transition-all duration-200 ease-out hover:shadow-[0_18px_55px_rgba(34,211,238,0.12)] sm:top-5 sm:rounded-[28px] sm:px-5 sm:py-3 lg:px-7">
+            <div className="app-content-column mx-auto flex w-full max-w-[1280px] flex-1 flex-col px-3 pt-[max(0.6rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5 lg:px-8">
+              <header className="sticky top-1.5 z-50 rounded-[20px] border border-cyan-300/20 bg-slate-950/80 px-2 py-1.5 shadow-[0_12px_45px_rgba(2,8,23,0.5)] backdrop-blur-2xl transition-all duration-200 ease-out hover:shadow-[0_18px_55px_rgba(34,211,238,0.12)] sm:top-5 sm:rounded-[28px] sm:px-5 sm:py-3 lg:px-7">
                 <div className="flex items-center justify-between gap-3">
-                  <Link href="/" className="flex min-w-0 items-center gap-2.5 rounded-2xl outline-none ring-0 transition-opacity duration-200 hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-300 sm:gap-4">
-                    <img src="/brand/soulx-logo.webp" width={48} height={48} decoding="async" alt="SOULX" className="h-10 w-10 shrink-0 rounded-xl shadow-[0_0_24px_rgba(34,211,238,0.22)] sm:h-12 sm:w-12 sm:rounded-2xl" />
+                  <Link href="/" className="flex min-w-0 items-center gap-2 rounded-2xl outline-none ring-0 transition-opacity duration-200 hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-300 sm:gap-4">
+                    <img src="/brand/soulx-logo.webp" width={48} height={48} decoding="async" alt="SOULX" className="h-9 w-9 shrink-0 rounded-xl shadow-[0_0_24px_rgba(34,211,238,0.22)] sm:h-12 sm:w-12 sm:rounded-2xl" />
                     <div className="min-w-0">
-                      <div className="text-lg font-black tracking-[-0.07em] text-white sm:text-xl">
-                        SOULX
+                      <div className="text-[1.05rem] font-bold tracking-[-0.045em] text-white sm:text-xl sm:font-black sm:tracking-[-0.07em]">
+                        <span className="sm:hidden">SoulX</span><span className="hidden sm:inline">SOULX</span>
                       </div>
                       <div className="hidden text-[9px] uppercase tracking-[0.22em] text-cyan-200/70 sm:block">One AI · A thousand minds</div>
                     </div>
@@ -89,7 +89,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   </nav>
 
                   <div className="flex shrink-0 items-center gap-1.5 min-[390px]:gap-2">
-                    <div className="hidden sm:block"><ThemeSelector compact /></div>
+                    <Link href="/explore#persona-search" aria-label="Search Personas" title="Search Personas" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-slate-300 transition hover:border-cyan-300/35 hover:text-cyan-100 md:hidden"><Search className="h-[18px] w-[18px]" aria-hidden="true" /></Link>
+                    <div className="hidden md:block"><ThemeSelector compact /></div>
                     <MobileAccountMenu />
                     <MobileNav items={navItems} />
                     <div className="hidden items-center gap-2 lg:flex"><AuthActions /></div>
@@ -97,37 +98,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </div>
               </header>
 
-              <main id="page-content" tabIndex={-1} className="relative z-10 flex-1 pt-6 sm:pt-8 lg:pt-10">
+              <main id="page-content" tabIndex={-1} className="relative z-10 flex-1 pt-4 sm:pt-8 lg:pt-10">
                 {children}
               </main>
 
-              <footer className="relative z-10 mt-8 rounded-[28px] border border-white/10 bg-slate-950/75 px-5 py-6 text-slate-300 shadow-[0_0_20px_rgba(15,23,42,0.8)] sm:px-8">
-                <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-                  <div className="flex items-center gap-3">
-                    <img src="/brand/soulx-logo.webp" width={48} height={48} decoding="async" alt="SOULX" className="h-11 w-11 rounded-xl" />
-                    <div>
-                      <div className="text-lg font-black tracking-[-0.06em] text-white">SOULX</div>
-                      <div className="text-[9px] uppercase tracking-[0.28em] text-slate-400">One AI. A thousand minds</div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between xl:flex-1 xl:justify-center">
-                    <div className="flex flex-wrap items-center gap-5 text-sm">
-                      {navItems.map((item) => (
-                        <Link key={item.href} href={item.href} className="transition-colors duration-200 hover:text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70">
-                          {item.label}
-                        </Link>
-                      ))}
-                    </div>
-                    <SocialLinks />
-                  </div>
-
-                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-500/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-cyan-200">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    One AI. A Thousand Minds.
-                  </div>
-                </div>
-              </footer>
+              <SiteFooter />
             </div>
           </div>
         </AppShell>

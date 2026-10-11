@@ -3,17 +3,26 @@ let profileStore: ProfilePreferencesStore = {};
 let snapshot = "";
 
 export type LikedMessage = { id: string; personaName: string; personaSlug?: string; content: string; savedAt: string };
+export type CommunityActivity = { id: string; kind: "post" | "reply"; title?: string; content: string; postId: string; createdAt: string };
 export type ProfilePreferences = {
   avatarDataUrl?: string;
   favoritePersonaSlug?: string;
   favoritePersonaSlugs?: string[];
   displayName?: string;
+  username?: string;
   bio?: string;
+  coverUrl?: string;
+  websiteUrl?: string;
+  socialLinks?: { x?: string; instagram?: string; linkedin?: string; github?: string };
+  joinedAt?: string;
   profileVisibility?: "Public" | "Private";
   quote?: string;
   quoteVisibility?: "Public" | "Private";
   pinnedConversations?: Array<{ id: string; title: string; personaName: string; preview: string; date: string }>;
   likedMessages?: LikedMessage[];
+  communityActivity?: CommunityActivity[];
+  stats?: { createdPersonas: number; followers: number; following: number; communityPosts: number; xp: number; badges: number };
+  badges?: Array<{ id: string; name: string; description: string; earnedAt: string }>;
 };
 type ProfilePreferencesStore = Record<string, ProfilePreferences>;
 

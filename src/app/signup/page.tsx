@@ -3,15 +3,19 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { signupUser } from "@/lib/auth";
 import { BackButton } from "@/components/back-button";
 import { RobotMotion } from "@/components/robot-motion";
+import { SocialAuthButtons } from "@/components/social-auth-buttons";
 
 export default function SignupPage() {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState("");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -26,6 +30,11 @@ export default function SignupPage() {
       return;
     }
 
+    if ("confirmationRequired" in result) {
+      setConfirmationEmail(result.email ?? form.email);
+      setIsSubmitting(false);
+      return;
+    }
     router.push("/profile");
     router.refresh();
   };
@@ -46,7 +55,10 @@ export default function SignupPage() {
         <p className="text-sm uppercase tracking-[0.25em] text-cyan-300">Create account</p>
         <h1 className="mt-3 text-4xl font-black tracking-[-0.07em] text-white">Join SoulX</h1>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+        <div className="mt-8"><SocialAuthButtons /></div>
+        <div className="my-7 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600"><span className="h-px flex-1 bg-white/10" />or sign up with email<span className="h-px flex-1 bg-white/10" /></div>
+
+        {confirmationEmail ? <div role="status" className="mt-7 rounded-2xl border border-cyan-300/20 bg-cyan-400/8 p-5 text-sm leading-6 text-cyan-50"><ShieldCheck className="mb-3 h-5 w-5 text-cyan-300" />Check <strong>{confirmationEmail}</strong> to verify your email, then return to log in. Your profile and data will be ready when you arrive.</div> : <form onSubmit={handleSubmit} className="space-y-4">
           <div className="rounded-2xl border border-white/10 bg-white/3 p-3">
             <label htmlFor="signup-name" className="text-xs uppercase tracking-[0.2em] text-slate-400">Full name</label>
             <input
@@ -76,17 +88,17 @@ export default function SignupPage() {
 
           <div className="rounded-2xl border border-white/10 bg-white/3 p-3">
             <label htmlFor="signup-password" className="text-xs uppercase tracking-[0.2em] text-slate-400">Password</label>
-            <input
+            <div className="flex items-center"><input
               id="signup-password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="new-password"
-              minLength={6}
+              minLength={8}
               required
               value={form.password}
               onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-              className="mt-2 w-full bg-transparent text-sm text-white placeholder:text-slate-500 focus:outline-none"
-              placeholder="Create a password"
-            />
+              className="mt-2 min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 focus:outline-none"
+              placeholder="At least 8 characters"
+            /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Hide password" : "Show password"} className="mt-2 p-2 text-slate-500 hover:text-white">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>
           </div>
 
           {error && (
@@ -102,7 +114,7 @@ export default function SignupPage() {
           >
             {isSubmitting ? "Creating account..." : "Create account"}
           </button>
-        </form>
+        </form>}
 
         <p className="mt-6 text-center text-sm text-slate-300">
           Already have an account? <Link href="/login" className="font-semibold text-cyan-300">Log in</Link>

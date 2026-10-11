@@ -7,6 +7,12 @@ export const dynamic = "force-dynamic";
 
 type Context = { params: Promise<{ slug: string }> };
 
+function writeError(error: unknown, fallback: string) {
+  const message = error instanceof Error ? error.message : fallback;
+  const status = message === "UNAUTHORIZED" || message === "SUSPENDED" ? 401 : 400;
+  return NextResponse.json({ error: message }, { status });
+}
+
 export async function GET(_: Request, { params }: Context) {
   try {
     const { slug } = await params;
@@ -27,7 +33,7 @@ export async function PATCH(request: Request, { params }: Context) {
     const room = await updateRoom(user.id, slug, await request.json());
     return NextResponse.json({ room });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to update the Room." }, { status: 400 });
+    return writeError(error, "Unable to update the Room.");
   }
 }
 
@@ -39,6 +45,6 @@ export async function DELETE(_: Request, { params }: Context) {
     await removeRoom(user.id, slug);
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to delete the Room." }, { status: 400 });
+    return writeError(error, "Unable to delete the Room.");
   }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/server/db";
-import { createSupabaseSession, getAuthenticatedUser } from "@/lib/server/auth";
+import { getAuthenticatedUser } from "@/lib/server/auth";
+import { createSupabaseAccount } from "@/lib/server/supabase-auth";
 
 export async function POST(request: Request) {
   try {
@@ -12,14 +13,13 @@ export async function POST(request: Request) {
     if (!supabaseAdmin) throw new Error("Supabase is not configured.");
     const registrationSetting = await supabaseAdmin.from("admin_settings").select("value").eq("key", "registration_enabled").maybeSingle();
     if (registrationSetting.data && registrationSetting.data.value === false) return NextResponse.json({ error: "Registration is temporarily disabled." }, { status: 403 });
-    const created = await supabaseAdmin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { full_name: name } });
-    if (created.error || !created.data.user) return NextResponse.json({ error: created.error?.message ?? "Could not create the account." }, { status: created.error?.status ?? 400 });
-    const profile = await supabaseAdmin.from("profiles").upsert({ id: created.data.user.id, email, full_name: name }, { onConflict: "id" });
+    const created = await createSupabaseAccount(name, email, password);
+    const profile = await supabaseAdmin.from("profiles").upsert({ id: created.user.id, email, full_name: name }, { onConflict: "id" });
     if (profile.error) throw profile.error;
     const limits = await supabaseAdmin.from("admin_settings").select("key,value").in("key", ["free_daily_message_limit", "free_monthly_message_limit"]);
     const configured = Object.fromEntries((limits.data ?? []).map((row) => [row.key, Number(String(row.value ?? "").replaceAll('"', ""))]));
-    await supabaseAdmin.from("profiles").update({ daily_message_limit: Number.isFinite(configured.free_daily_message_limit) ? configured.free_daily_message_limit : 5, monthly_message_limit: Number.isFinite(configured.free_monthly_message_limit) ? configured.free_monthly_message_limit : 150 }).eq("id", created.data.user.id);
-    await createSupabaseSession(email, password);
+    await supabaseAdmin.from("profiles").update({ daily_message_limit: Number.isFinite(configured.free_daily_message_limit) ? configured.free_daily_message_limit : 5, monthly_message_limit: Number.isFinite(configured.free_monthly_message_limit) ? configured.free_monthly_message_limit : 150 }).eq("id", created.user.id);
+    if (!created.sessionCreated) return NextResponse.json({ confirmationRequired: true, email }, { status: 202 });
     const user = await getAuthenticatedUser();
     if (!user) throw new Error("Could not load the new account.");
     return NextResponse.json({ user }, { status: 201 });

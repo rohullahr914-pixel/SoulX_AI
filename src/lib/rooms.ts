@@ -2,7 +2,7 @@ import type { Persona } from "@/lib/types";
 
 export type RoomVisibility = "Public" | "Private";
 
-export type RoomPersona = Pick<Persona, "slug" | "name" | "avatar" | "profession" | "category" | "expertise" | "speakingStyle">;
+export type RoomPersona = Pick<Persona, "slug" | "name"> & Partial<Pick<Persona, "avatar" | "profession" | "category" | "expertise" | "speakingStyle">>;
 
 export type Room = {
   id?: string;

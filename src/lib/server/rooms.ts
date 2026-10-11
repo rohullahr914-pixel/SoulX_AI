@@ -3,8 +3,8 @@ import "server-only";
 import { getPersonaBySlug, getPersonas } from "@/lib/personas";
 import { OFFICIAL_ROOMS, ROOM_COVER_OPTIONS, roomSlug, type Room, type RoomMessage, type RoomPersona, type RoomVisibility } from "@/lib/rooms";
 import { generatePersonaResponse } from "@/lib/ai/persona-engine";
-import type { AIProvider, AIUsage } from "@/lib/ai/provider";
-import { AI_RESERVATION_PROVIDER, recordAIUsage } from "@/lib/server/ai-usage";
+import type { AIProvider } from "@/lib/ai/provider";
+import { AI_RESERVATION_PROVIDER, recordAIUsage, releaseAIReservation } from "@/lib/server/ai-usage";
 import { query } from "@/lib/server/db";
 import { ensureSystemPersona, trackConversation } from "@/lib/server/social";
 
@@ -172,19 +172,17 @@ function mentionedPersonaSlugs(message: string, personas: RoomPersona[]) {
   return personas.filter((persona) => lower.includes(`@${persona.name.toLowerCase()}`) || lower.includes(`@${persona.name.split(" ").at(-1)?.toLowerCase()}`)).map((persona) => persona.slug);
 }
 
-function chooseResponders(message: string, personas: RoomPersona[], messages: RoomMessage[]) {
+export function chooseRoomResponders(message: string, personas: RoomPersona[], messages: RoomMessage[]) {
   const mentions = mentionedPersonaSlugs(message, personas);
-  if (mentions.length) return personas.filter((persona) => mentions.includes(persona.slug)).slice(0, 3);
+  const mentioned = new Set(mentions);
   const terms = message.toLowerCase().match(/[a-z0-9]{3,}/g) ?? [];
   const lastSpeaker = [...messages].reverse().find((item) => item.personaSlug)?.personaSlug;
   const scored = personas.map((persona, index) => {
-    const identity = [persona.name, persona.profession, persona.category, ...persona.expertise].join(" ").toLowerCase();
+    const identity = [persona.name, persona.profession, persona.category, ...(persona.expertise ?? [])].join(" ").toLowerCase();
     const relevance = terms.reduce((score, term) => score + (identity.includes(term) ? 2 : 0), 0);
-    return { persona, score: relevance + (lastSpeaker === persona.slug ? 0.15 : 0) + (personas.length - index) / 1000 };
+    return { persona, score: (mentioned.has(persona.slug) ? 100 : 0) + relevance + (lastSpeaker === persona.slug ? 0.15 : 0) + (personas.length - index) / 1000 };
   }).sort((a, b) => b.score - a.score);
-  const threshold = scored[0]?.score ?? 0;
-  const count = threshold >= 4 ? 3 : threshold >= 2 ? 2 : 1;
-  return scored.slice(0, Math.min(count, 3)).map((item) => item.persona);
+  return scored.map((item) => item.persona);
 }
 
 function roomHistory(messages: RoomMessage[], personas: RoomPersona[]) {
@@ -205,44 +203,60 @@ export async function sendRoomMessage(userId: string, room: Room, message: strin
   );
   const allowance = reservation.rows[0];
   if (allowance && !allowance.allowed) throw new Error(allowance.reason === "daily_limit" ? `Daily limit reached (${allowance.daily_limit} messages).` : "Monthly message limit reached.");
+  try {
+    const conversation = await query<RoomRow>(`INSERT INTO conversations(user_id,persona_id,room_id,title,updated_at)
+      VALUES($1,$2,$3,$4,now()) ON CONFLICT(room_id,user_id) WHERE room_id IS NOT NULL
+      DO UPDATE SET title=EXCLUDED.title,updated_at=now() RETURNING id`, [userId, `room:${room.slug}`, room.id, content.slice(0, 240)]);
+    const conversationId = text(conversation.rows[0]?.id, 100);
+    if (!conversationId) throw new Error("Unable to open the Room conversation.");
+    const previous = await loadRoomMessages(userId, room);
+    const responders = chooseRoomResponders(content, room.personas, previous.messages);
+    const names = room.personas.map((persona) => persona.name);
+    const history = roomHistory(previous.messages, room.personas);
+    const results = await Promise.all(responders.map(async (responder) => {
+      const response = await generatePersonaResponse({
+        personaSlug: responder.slug,
+        userMessage: content,
+        mode: "Debate",
+        history: [
+          ...history,
+          { role: "assistant", content: `Room context: ${room.name}. Topic: ${room.topic}. Other participants who will also answer: ${names.filter((name) => name !== responder.name).join(", ")}. Speak only for ${responder.name}. Give ${responder.name}'s distinct view on the user's question without impersonating another participant.` },
+        ],
+      });
+      if (!response.ok || !response.content?.trim() || !response.provider) return null;
+      const assistantContent = response.content.trim();
+      const generatedMessage: RoomMessage = { id: crypto.randomUUID(), role: "assistant", content: assistantContent, personaSlug: responder.slug, createdAt: new Date().toISOString() };
+      return { message: generatedMessage, provider: response.provider, model: response.model ?? "", measuredTokens: response.usage?.totalTokens ?? 0 };
+    }));
 
-  const conversation = await query<RoomRow>(`INSERT INTO conversations(user_id,persona_id,room_id,title,updated_at)
-    VALUES($1,$2,$3,$4,now()) ON CONFLICT(room_id,user_id) WHERE room_id IS NOT NULL
-    DO UPDATE SET title=EXCLUDED.title,updated_at=now() RETURNING id`, [userId, `room:${room.slug}`, room.id, content.slice(0, 240)]);
-  const conversationId = text(conversation.rows[0]?.id, 100);
-  if (!conversationId) throw new Error("Unable to open the Room conversation.");
-  const previous = await loadRoomMessages(userId, room);
-  await query("INSERT INTO messages(conversation_id,user_id,role,content) VALUES($1,$2,'user',$3)", [conversationId, userId, content]);
-
-  const responders = chooseResponders(content, room.personas, previous.messages);
-  const generated: RoomMessage[] = [];
-  let totalTokens = content.length;
-  let usageResult: { provider: AIProvider; usage?: AIUsage } | null = null;
-  const names = room.personas.map((persona) => persona.name);
-
-  for (const responder of responders) {
-    const response = await generatePersonaResponse({
-      personaSlug: responder.slug,
-      userMessage: content,
-      mode: "Debate",
-      history: [
-        ...roomHistory([...previous.messages, ...generated], room.personas),
-        { role: "assistant", content: `Room context: ${room.name}. Topic: ${room.topic}. Other participants: ${names.filter((name) => name !== responder.name).join(", ")}. Speak only for ${responder.name}; directly address useful prior arguments when relevant.` },
-      ],
-    });
-    if (!response.ok || !response.content?.trim()) continue;
-    const assistantContent = response.content.trim();
-    totalTokens += assistantContent.length;
+    if (results.some((result) => result === null)) throw new Error("Not every Room participant could respond. Please try again.");
+    const stored = results.filter((result): result is NonNullable<typeof result> => result !== null);
+    const generated = stored.map((item) => item.message);
+    const totalCharacters = content.length + generated.reduce((sum, item) => sum + item.content.length, 0);
+    const measuredTokens = stored.reduce((sum, item) => sum + item.measuredTokens, 0);
+    const messageValues: unknown[] = [conversationId, userId, content];
+    const messageRows = ["($1,$2,'user',$3,NULL,NULL,NULL)"];
+    for (const item of stored) {
+      const offset = messageValues.length + 1;
+      messageRows.push(`($1,$2,'assistant',$${offset},$${offset + 1},$${offset + 2},$${offset + 3})`);
+      messageValues.push(item.message.content, item.provider, item.model, item.message.personaSlug);
+    }
     await query(`INSERT INTO messages(conversation_id,user_id,role,content,model_provider,model_name,speaker_persona_slug)
-      VALUES($1,$2,'assistant',$3,$4,$5,$6)`, [conversationId, userId, assistantContent, response.provider ?? "groq", response.model ?? "", responder.slug]);
-    await trackConversation(userId, responder.slug, conversationId).catch(() => undefined);
-    usageResult = response.provider ? { provider: response.provider, usage: response.usage } : usageResult;
-    generated.push({ id: crypto.randomUUID(), role: "assistant", content: assistantContent, personaSlug: responder.slug, createdAt: new Date().toISOString() });
-  }
+      VALUES ${messageRows.join(",")}`, messageValues);
+    for (const item of stored) {
+      await trackConversation(userId, item.message.personaSlug ?? "", conversationId).catch(() => undefined);
+    }
 
-  if (!generated.length) throw new Error("The Room could not generate a response. Please try again.");
-  if (allowance?.usage_date && usageResult) await recordAIUsage(userId, allowance.usage_date, usageResult, Math.ceil(totalTokens / 4)).catch(() => undefined);
-  return generated;
+    if (allowance?.usage_date) {
+      const provider = stored.at(-1)!.provider;
+      const usage = measuredTokens > 0 ? { inputTokens: 0, outputTokens: 0, totalTokens: measuredTokens } : undefined;
+      await recordAIUsage(userId, allowance.usage_date, { provider, usage }, Math.ceil(totalCharacters / 4)).catch(() => undefined);
+    }
+    return generated;
+  } catch (error) {
+    if (allowance?.allowed && allowance.usage_date) await releaseAIReservation(userId, allowance.usage_date).catch(() => undefined);
+    throw error;
+  }
 }
 
 export function fallbackOfficialRoom(slug: string) {

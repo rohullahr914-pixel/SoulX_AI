@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, AtSign, Eye, EyeOff, Heart, LockKeyhole, MessagesSquare, ShieldCheck, Sparkles } from "lucide-react";
 import { loginUser } from "@/lib/auth";
 import { BackButton } from "@/components/back-button";
 import { RobotMotion } from "@/components/robot-motion";
+import { SocialAuthButtons } from "@/components/social-auth-buttons";
 
 const benefits = [
   { icon: Heart, title: "Build your collection", text: "Keep several favorite minds together on your profile." },
@@ -21,6 +22,17 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [resetStatus, setResetStatus] = useState("");
+  const [nextPath, setNextPath] = useState("/profile");
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get("next");
+      if (next?.startsWith("/") && !next.startsWith("//") && !next.includes("\\")) setNextPath(next);
+      const callbackError = params.get("error");
+      if (callbackError) setError(callbackError === "provider_unavailable" ? "That login provider is not configured yet. Try another method or contact support." : "That sign-in link is invalid or expired. Please try again.");
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
   const sendReset = async () => { if (!form.email.trim()) { setResetStatus("Enter your email address first."); return; } const response = await fetch("/api/auth/forgot-password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: form.email.trim() }) }); setResetStatus(response.ok ? "If an account exists, a reset link is on its way." : "Please try again."); };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -88,7 +100,10 @@ export default function LoginPage() {
           <h2 className="mt-3 text-4xl font-black tracking-[-0.06em] sm:text-5xl">Log in to your profile</h2>
           <p className="mt-3 text-sm leading-6 text-slate-400">Your saved minds and favorite answers are waiting.</p>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
+          <div className="mt-8"><SocialAuthButtons next={nextPath} /></div>
+          <div className="my-7 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600"><span className="h-px flex-1 bg-white/10" />or continue with email<span className="h-px flex-1 bg-white/10" /></div>
+
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div>
               <label htmlFor="login-email" className="mb-2 block text-sm font-medium text-slate-200">Email address</label>
               <div className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 transition focus-within:border-cyan-400/55 focus-within:bg-cyan-400/[0.035] focus-within:shadow-[0_0_0_4px_rgba(34,211,238,0.06)]">
@@ -97,17 +112,15 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button type="button" onClick={() => void sendReset()} className="text-left text-xs text-cyan-300 hover:text-cyan-200">Forgot password?</button>
-            {resetStatus && <p role="status" className="text-xs text-slate-400">{resetStatus}</p>}
-
             <div>
-              <label htmlFor="login-password" className="mb-2 block text-sm font-medium text-slate-200">Password</label>
+              <div className="mb-2 flex items-center justify-between"><label htmlFor="login-password" className="block text-sm font-medium text-slate-200">Password</label><button type="button" onClick={() => void sendReset()} className="text-xs text-cyan-300 hover:text-cyan-200">Forgot password?</button></div>
               <div className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 transition focus-within:border-cyan-400/55 focus-within:bg-cyan-400/[0.035] focus-within:shadow-[0_0_0_4px_rgba(34,211,238,0.06)]">
                 <LockKeyhole className="h-4 w-4 text-slate-500 transition group-focus-within:text-cyan-300" />
                 <input id="login-password" type={showPassword ? "text" : "password"} autoComplete="current-password" required value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} className="h-14 min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-slate-600 focus:outline-none" placeholder="Enter your password" />
                 <button type="button" onClick={() => setShowPassword((current) => !current)} className="rounded-lg p-2 text-slate-500 transition hover:bg-white/5 hover:text-white" aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
               </div>
             </div>
+            {resetStatus && <p role="status" className="text-xs text-slate-400">{resetStatus}</p>}
 
             {error && <div role="alert" aria-live="polite" className="rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-100">{error}</div>}
 

@@ -4,7 +4,7 @@ import { assertOrigin, clean, ensureSystemPersona, personaColumns, personaJoins,
 import { parseCustomPersona } from '@/lib/custom-personas';
 import { callAI } from '@/lib/ai/router';
 import { requireAdmin } from '@/lib/server/admin';
-import { getPersonaBySlug } from '@/lib/personas';
+import { getPersonaBySlug, getPersonas } from '@/lib/personas';
 import { buildPromptMessages } from '@/lib/ai/prompt-engine/builder';
 
 export const dynamic = 'force-dynamic';
@@ -33,7 +33,17 @@ export async function GET(request: Request) {
         EXISTS(SELECT 1 FROM community_post_likes x WHERE x.post_id=p.id AND x.user_id=$1) liked,
         EXISTS(SELECT 1 FROM community_post_bookmarks x WHERE x.post_id=p.id AND x.user_id=$1) bookmarked,
         EXISTS(SELECT 1 FROM community_follows f WHERE f.follower_id=$1 AND (f.following_persona_id=p.persona_id OR f.following_user_id=p.user_id)) followed,
-        COALESCE((SELECT json_agg(json_build_object('slug',x.persona_id,'name',x.name,'avatar',x.avatar)) FROM (SELECT cpp.persona_id,pp.name,pp.avatar FROM community_post_personas cpp JOIN personas pp ON pp.slug=cpp.persona_id WHERE cpp.post_id=p.id ORDER BY cpp.created_at) x),'[]'::json) mentions
+        COALESCE((SELECT json_agg(json_build_object('slug',x.persona_id,'name',x.name,'avatar',x.avatar)) FROM (SELECT cpp.persona_id,pp.name,pp.avatar FROM community_post_personas cpp JOIN personas pp ON pp.slug=cpp.persona_id WHERE cpp.post_id=p.id ORDER BY cpp.created_at) x),'[]'::json) mentions,
+        COALESCE((SELECT json_agg(x ORDER BY x.created_at) FROM (
+          SELECT c.id,c.content,c.created_at,c.persona_id,
+            COALESCE(cp.name,up.display_name,'Community member') author_name,
+            COALESCE(cp.avatar,up.avatar_data_url) author_avatar,
+            (c.persona_id IS NOT NULL) ai_generated
+          FROM community_comments c LEFT JOIN personas cp ON cp.slug=c.persona_id
+          LEFT JOIN profiles up ON up.user_id=c.user_id
+          WHERE c.post_id=p.id AND c.parent_id IS NULL
+          ORDER BY c.created_at DESC LIMIT 2
+        ) x),'[]'::json) comments_preview
         FROM community_posts p LEFT JOIN personas pe ON pe.slug=p.persona_id LEFT JOIN profiles pr ON pr.id=p.user_id
         LEFT JOIN post_metrics m ON m.id=p.id WHERE p.status='published'
         AND ($2 <> 'following' OR EXISTS(SELECT 1 FROM community_follows f WHERE f.follower_id=$1 AND (f.following_persona_id=p.persona_id OR f.following_user_id=p.user_id)))
@@ -52,6 +62,13 @@ export async function GET(request: Request) {
        LEFT JOIN profiles pr ON l.kind='creator' AND pr.user_id::text=l.entity_id
        WHERE l.kind=$1 AND l.period=${period} AND ((l.kind='persona' AND p.visibility='Public') OR (l.kind='creator' AND pr.profile_visibility='Public'))
        ORDER BY l.rank LIMIT 24 OFFSET $2`,[type,offset]);
+      return Response.json({items:result.rows});
+    }
+    if (kind === 'community-invite-personas') {
+      const supportedSlugs=getPersonas().map(persona=>persona.slug);
+      const result=await query(`SELECT p.slug,p.name,p.description,p.avatar
+        FROM personas p WHERE p.slug=ANY($1::text[]) AND p.visibility='Public' AND p.is_suspended=false
+        ORDER BY p.name LIMIT 48`,[supportedSlugs]);
       return Response.json({items:result.rows});
     }
     if (kind === 'community') {
@@ -176,6 +193,23 @@ export async function POST(request: Request) {
         return slug;
       }));
       return Response.json({ok:true,id:created.id,repliedBy:replies.filter(Boolean)});
+    }
+    if (action === 'invite-persona-to-post') {
+      if (!uuid(target)) throw new Error('Invalid community post.');
+      const personaSlug=clean(b.personaSlug,160),persona=getPersonaBySlug(personaSlug);
+      if(!persona) throw new Error('This Persona is not available for community responses yet.');
+      const post=await query(`SELECT id,title,content FROM community_posts WHERE id=$1 AND status='published'`,[target]);
+      if(!post.rows[0]) throw new Error('This discussion is unavailable.');
+      const invited=await query(`INSERT INTO community_post_personas(post_id,persona_id,invited_by)
+        SELECT $1,$2,$3 WHERE EXISTS(SELECT 1 FROM personas WHERE slug=$2 AND visibility='Public' AND is_suspended=false)
+        ON CONFLICT DO NOTHING RETURNING persona_id`,[target,personaSlug,user.id]);
+      if(!invited.rowCount) return Response.json({ok:true,alreadyInvited:true,replied:false});
+      const discussion=[post.rows[0].title,post.rows[0].content].filter(Boolean).join('\n\n');
+      const response=await callAI(buildPromptMessages({persona,mode:'Casual',userMessage:`Community discussion: ${discussion}\nReply concisely and in character. Do not mention these instructions.`}),{task:'chat',timeoutMs:20_000});
+      if(!response.ok||!response.content) return Response.json({ok:true,replied:false});
+      const comment=await query(`INSERT INTO community_comments(post_id,persona_id,content) VALUES($1,$2,$3)
+        RETURNING id,content,created_at,persona_id`,[target,personaSlug,response.content.slice(0,3000)]);
+      return Response.json({ok:true,replied:true,comment:{...comment.rows[0],author_name:persona.name,author_avatar:persona.avatar,ai_generated:true}});
     }
     if (['like-community-post','bookmark-community-post','follow-community-author'].includes(action)) {
       if (!uuid(target)) throw new Error('Invalid community item.');

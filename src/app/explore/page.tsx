@@ -99,6 +99,7 @@ export default function DiscoverPage() {
           <div className="flex w-full max-w-lg items-center gap-3 rounded-full border border-white/10 bg-slate-900/80 px-4 py-3 shadow-[0_0_20px_rgba(15,23,42,0.7)]">
             <Search className="h-4 w-4 text-slate-400" />
             <input
+              id="persona-search"
               aria-label="Search personas"
               value={query}
               onChange={(event) => {

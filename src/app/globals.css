@@ -96,6 +96,155 @@ body {
 [data-theme="neon"] .text-cyan-300, [data-theme="neon"] .text-cyan-200 { color: #00f5d4 !important; }
 [data-theme="neon"] .bg-gradient-to-r.from-cyan-500.to-blue-600, [data-theme="neon"] .bg-gradient-to-br.from-cyan-400.to-blue-600 { background-image: linear-gradient(90deg, #f72585, #7209b7 52%, #00f5d4) !important; }
 
+/* Premium profile surfaces stay cohesive across all three theme systems. */
+.profile-feature-card {
+  scroll-margin-top: 7rem;
+  transition: transform 220ms cubic-bezier(.22, 1, .36, 1), border-color 220ms ease, box-shadow 220ms ease;
+}
+.profile-feature-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--cyan) 28%, transparent);
+  box-shadow: 0 18px 42px rgba(2, 8, 23, .18);
+}
+.profile-kicker {
+  color: color-mix(in srgb, var(--cyan) 82%, white);
+  font-size: .66rem;
+  font-weight: 750;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+[data-theme="editorial"] .theme-profile-card {
+  border-color: rgba(91,56,31,.16) !important;
+  background-color: rgba(255,252,246,.86) !important;
+  background-image: none !important;
+  box-shadow: 0 16px 42px rgba(91,56,31,.09);
+}
+[data-theme="editorial"] .theme-profile-card input,
+[data-theme="editorial"] .theme-profile-card textarea,
+[data-theme="editorial"] .theme-profile-card select {
+  border-color: rgba(91,56,31,.18) !important;
+  background: rgba(255,252,246,.82) !important;
+  color: #25201d !important;
+}
+[data-theme="neon"] .theme-profile-card {
+  border-color: rgba(247,37,133,.2) !important;
+  background-color: rgba(20,4,37,.88) !important;
+  box-shadow: 0 0 32px rgba(247,37,133,.08);
+}
+@media (prefers-reduced-motion: reduce) {
+  .profile-feature-card { transition: none; }
+  .profile-feature-card:hover { transform: none; }
+}
+
+/* Mobile app navigation uses the existing theme tokens and stays intentionally
+   restrained: a crisp surface, one focal action, and route-aware active states. */
+.mobile-bottom-nav {
+  width: 100vw;
+  max-width: 100vw;
+  overflow: hidden;
+  color: #94a3b8;
+  transition: transform 180ms cubic-bezier(.22, 1, .36, 1), opacity 180ms ease;
+}
+
+.mobile-bottom-nav[data-keyboard-open="true"] {
+  pointer-events: none;
+  transform: translateY(110%);
+  opacity: 0;
+}
+
+.mobile-bottom-nav__surface {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 100%;
+  max-width: 100%;
+  align-items: end;
+  min-height: calc(4.5rem + env(safe-area-inset-bottom));
+  border-top: 1px solid color-mix(in srgb, var(--cyan) 19%, transparent);
+  background: rgba(3, 10, 25, 0.94);
+  padding: 0.4rem 0.35rem max(0.4rem, env(safe-area-inset-bottom));
+  box-shadow: 0 -14px 40px rgba(2, 8, 23, 0.46), inset 0 1px rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.mobile-bottom-nav__item {
+  display: flex;
+  min-width: 0;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: flex-end;
+  flex-direction: column;
+  gap: 0.22rem;
+  border: 0;
+  border-radius: 1rem;
+  background: transparent;
+  color: inherit;
+  font-size: 0.64rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  text-decoration: none;
+  transition: color 170ms ease, background-color 170ms ease, transform 170ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-bottom-nav__item:active { transform: scale(0.96); }
+.mobile-bottom-nav__item[data-active="true"] { color: color-mix(in srgb, var(--cyan) 82%, white); }
+.mobile-bottom-nav__item[data-active="true"] .mobile-bottom-nav__icon { background: color-mix(in srgb, var(--cyan) 11%, transparent); }
+
+.mobile-bottom-nav__icon {
+  display: grid;
+  width: 2.35rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 0.8rem;
+  transition: background-color 170ms ease, color 170ms ease;
+}
+
+.mobile-bottom-nav__create { color: #d9faff; }
+.mobile-bottom-nav__create-icon {
+  display: grid;
+  width: 3.35rem;
+  height: 3.35rem;
+  margin-top: -1.25rem;
+  place-items: center;
+  border: 1px solid rgba(165, 243, 252, 0.34);
+  border-radius: 1.15rem;
+  background: linear-gradient(145deg, var(--cyan), var(--blue));
+  color: #effcff;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--cyan) 20%, transparent), inset 0 1px rgba(255, 255, 255, 0.24);
+}
+
+.mobile-create-sheet { animation: mobile-sheet-in 190ms cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes mobile-sheet-in { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+[data-theme="editorial"] .mobile-bottom-nav__surface,
+[data-theme="editorial"] .mobile-create-sheet {
+  border-color: rgba(91, 56, 31, 0.18) !important;
+  background: rgba(255, 252, 246, 0.96) !important;
+  color: #685b51;
+  box-shadow: 0 -14px 38px rgba(91, 56, 31, 0.13) !important;
+}
+
+[data-theme="neon"] .mobile-bottom-nav__surface,
+[data-theme="neon"] .mobile-create-sheet {
+  border-color: rgba(247, 37, 133, 0.25) !important;
+  background: rgba(20, 4, 37, 0.95) !important;
+}
+
+@media (max-width: 767px) {
+  .app-content-column { padding-bottom: calc(5.25rem + env(safe-area-inset-bottom)); }
+  .app-chat-workspace { height: calc(100dvh - 11.25rem - env(safe-area-inset-bottom)) !important; }
+  .floating-action { bottom: calc(5.65rem + env(safe-area-inset-bottom)); }
+  header .theme-compact-picker { gap: 0.25rem; padding: 0.3rem; }
+  header .theme-compact-picker button { width: 1rem; height: 1rem; }
+}
+
+@media (max-width: 350px) {
+  .mobile-bottom-nav__item { font-size: 0.58rem; }
+  .mobile-bottom-nav__surface { padding-inline: 0.15rem; }
+}
+
 /* Lightweight motion: opacity and transform are compositor-friendly, so these
    enrich navigation without triggering layout work or downloading animation JS. */
 @keyframes shell-enter { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }

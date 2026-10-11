@@ -6,6 +6,12 @@ import type { AIProvider, AIUsage } from "@/lib/ai/provider";
 // Successful responses move that single reservation to the provider that answered.
 export const AI_RESERVATION_PROVIDER = "ai-pending";
 
+export async function releaseAIReservation(userId: string, reservationDate: string) {
+  await query(`UPDATE usage SET messages_used=messages_used-1,updated_at=now()
+    WHERE user_id=$1 AND date=$2::date AND provider=$3 AND messages_used>0`,
+  [userId, reservationDate, AI_RESERVATION_PROVIDER]);
+}
+
 export async function recordAIUsage(userId: string, reservationDate: string, result: { provider: AIProvider; usage?: AIUsage }, estimatedTokens: number) {
   const tokens = result.usage?.totalTokens ?? estimatedTokens;
   await query(`
